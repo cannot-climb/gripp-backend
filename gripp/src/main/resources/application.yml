@@ -18,6 +18,16 @@ spring:
         format_sql: true
         show_sql: true
 
+springdoc:
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  swagger-ui:
+    path: /swagger-ui
+    display-request-duration: true
+    disable-swagger-default-url: false
+  cache:
+    disabled: true
+
 gripp:
   jwt:
     secret: gripp-secret-gripp-secret-gripp-secret-gripp-secret-gripp-secret-gripp-secret-gripp-secret

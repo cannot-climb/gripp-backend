@@ -53,7 +53,10 @@ public class SpringSecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().antMatchers("/h2-console/**", "/actuator/**");
+        return (web) -> web.ignoring().antMatchers(
+                "/v3/api-docs*/**", "/swagger-ui*/**",
+                "/h2-console/**", "/actuator/**"
+        );
     }
 
     @Bean

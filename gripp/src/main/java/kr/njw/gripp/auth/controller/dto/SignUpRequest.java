@@ -7,7 +7,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 @Data
-public class CreateUserRequest {
+public class SignUpRequest {
     @NotNull
     @Size(min = 2, max = 15)
     @Pattern(regexp = "\\w*", message = "must contain only alphanumeric characters")

@@ -1,25 +1,41 @@
 package kr.njw.gripp.auth.controller;
 
-import kr.njw.gripp.auth.controller.dto.CreateUserRequest;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import kr.njw.gripp.auth.application.AccountApplication;
+import kr.njw.gripp.auth.controller.dto.FindAccountResponse;
+import kr.njw.gripp.auth.controller.dto.SignUpRequest;
+import kr.njw.gripp.auth.controller.dto.SignUpResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
-    @PostMapping(value = "/users")
-    public Map<String, Object> createUser(@Valid @RequestBody CreateUserRequest request) {
-        HashMap<String, Object> map = new HashMap<>();
+    private final AccountApplication accountApplication;
 
-        map.put("result", "SUCCESS");
-        System.out.println(request);
+    @PostMapping("/accounts")
+    public ResponseEntity<SignUpResponse> signUp(@Valid @RequestBody SignUpRequest request) {
+        request.setUsername("");
 
-        return map;
+        boolean result = this.accountApplication.signUp(request);
+
+        SignUpResponse response = new SignUpResponse();
+        response.setCode(result ? "SUCCESS" : "FAIL");
+
+        return ResponseEntity.status(result ? HttpStatus.CREATED : HttpStatus.CONFLICT).body(response);
+    }
+
+    @GetMapping("/accounts/{username}")
+    public ResponseEntity<FindAccountResponse> findAccount(@PathVariable("username") String username) {
+        boolean result = this.accountApplication.isUsernameExisted(username);
+
+        FindAccountResponse response = new FindAccountResponse();
+        response.setResult(result);
+
+        return ResponseEntity.ok(response);
     }
 }

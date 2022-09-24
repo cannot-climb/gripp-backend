@@ -1,9 +1,6 @@
 package kr.njw.gripp.global.config;
 
-import kr.njw.gripp.global.auth.JwtAccessDeniedHandler;
-import kr.njw.gripp.global.auth.JwtAuthenticationEntryPoint;
-import kr.njw.gripp.global.auth.JwtAuthenticationFilter;
-import kr.njw.gripp.global.auth.JwtTokenProvider;
+import kr.njw.gripp.global.auth.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +18,7 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 public class SpringSecurityConfig {
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
@@ -29,7 +26,7 @@ public class SpringSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeRequests()
                 .antMatchers("/auth/**").permitAll()
-                .anyRequest().hasAuthority("USER");
+                .anyRequest().hasAuthority(AuthEnum.AUTHORITY_USER.getValue());
 
         httpSecurity.exceptionHandling()
                 .authenticationEntryPoint(this.jwtAuthenticationEntryPoint)
@@ -46,7 +43,7 @@ public class SpringSecurityConfig {
         httpSecurity.headers().defaultsDisabled().cacheControl();
         httpSecurity.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        httpSecurity.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+        httpSecurity.addFilterBefore(new JwtAuthenticationFilter(this.jwtAuthenticationProvider),
                 UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();

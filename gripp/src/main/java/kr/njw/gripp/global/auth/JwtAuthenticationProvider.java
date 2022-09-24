@@ -17,13 +17,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
-public class JwtTokenProvider {
+public class JwtAuthenticationProvider {
     public static final long TOKEN_VALID_TIME_MS = 30 * 60 * 1000;
     private static final String AUTHORITIES_KEY = "authorities";
 
     private final String secret;
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String secret) {
+    public JwtAuthenticationProvider(@Value("${gripp.jwt.secret}") String secret) {
         this.secret = Base64.getEncoder().encodeToString(secret.getBytes());
     }
 
@@ -74,7 +74,10 @@ public class JwtTokenProvider {
         Object authorities = claims.get(AUTHORITIES_KEY);
 
         if (authorities instanceof Collection<?> authorityCollection) {
-            return authorityCollection.stream().map(Object::toString).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+            return authorityCollection.stream()
+                    .map(Object::toString)
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
         }
 
         return Collections.emptyList();

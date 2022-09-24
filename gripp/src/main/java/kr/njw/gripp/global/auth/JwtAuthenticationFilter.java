@@ -19,15 +19,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
         String header = Objects.requireNonNullElse(request.getHeader(AUTHORIZATION_HEADER), "").trim();
 
         if (StringUtils.startsWithIgnoreCase(header, BEARER_PREFIX)) {
             String token = StringUtils.substringAfter(header, BEARER_PREFIX);
-            Optional<Authentication> authentication = this.jwtTokenProvider.getAuthentication(token);
+            Optional<Authentication> authentication = this.jwtAuthenticationProvider.getAuthentication(token);
 
             authentication.ifPresent(value -> SecurityContextHolder.getContext().setAuthentication(value));
         }

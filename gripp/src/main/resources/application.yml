@@ -18,5 +18,6 @@ spring:
         format_sql: true
         show_sql: true
 
-jwt:
-  secret: gripp-secret-gripp-secret-gripp-secret-gripp-secret-gripp-secret-gripp-secret-gripp-secret
+gripp:
+  jwt:
+    secret: gripp-secret-gripp-secret-gripp-secret-gripp-secret-gripp-secret-gripp-secret-gripp-secret

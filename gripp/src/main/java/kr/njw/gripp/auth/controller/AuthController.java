@@ -19,8 +19,6 @@ public class AuthController {
 
     @PostMapping("/accounts")
     public ResponseEntity<SignUpResponse> signUp(@Valid @RequestBody SignUpRequest request) {
-        request.setUsername("");
-
         boolean result = this.accountApplication.signUp(request);
 
         SignUpResponse response = new SignUpResponse();

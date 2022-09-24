@@ -15,7 +15,7 @@ public class GlobalControllerAdvice {
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException e) {
         Map<String, Object> body = new HashMap<>();
 
-        body.put("messages", e.getBindingResult()
+        body.put("errors", e.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(error -> (error.getField() + " " +

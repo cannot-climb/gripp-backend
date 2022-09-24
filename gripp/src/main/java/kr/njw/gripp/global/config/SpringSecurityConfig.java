@@ -26,7 +26,7 @@ public class SpringSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeRequests()
                 .antMatchers("/auth/**").permitAll()
-                .anyRequest().hasAuthority(AuthEnum.AUTHORITY_USER.getValue());
+                .anyRequest().hasAuthority(Authority.USER.getValue());
 
         httpSecurity.exceptionHandling()
                 .authenticationEntryPoint(this.jwtAuthenticationEntryPoint)

@@ -27,11 +27,11 @@ public class JwtAuthenticationProvider {
         this.secret = Base64.getEncoder().encodeToString(secret.getBytes());
     }
 
-    public String createToken(String username, List<String> authorities) {
+    public String createToken(String username, List<Authority> authorities) {
         Date now = new Date();
         Claims claims = Jwts.claims().setSubject(username);
 
-        claims.put(AUTHORITIES_KEY, authorities);
+        claims.put(AUTHORITIES_KEY, authorities.stream().map(Authority::getValue).collect(Collectors.toList()));
 
         return Jwts.builder()
                 .setClaims(claims)

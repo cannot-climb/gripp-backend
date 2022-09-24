@@ -1,11 +1,11 @@
 package kr.njw.gripp.global.auth;
 
-public enum AuthEnum {
-    AUTHORITY_USER("USER");
+public enum Authority {
+    USER("USER");
 
     private final String value;
 
-    AuthEnum(String value) {
+    Authority(String value) {
         this.value = value;
     }
 

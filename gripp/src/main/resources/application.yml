@@ -34,6 +34,20 @@ springdoc:
     disable-swagger-default-url: false
   cache:
     disabled: true
+  show-actuator: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - env
+          - health
+          - httptrace
+          - metrics
+  endpoint:
+    health:
+      show-details: always
 
 .env:
   ignoreIfMissing: false

@@ -30,7 +30,7 @@ public class SpringSecurityConfig {
     public SecurityFilterChain adminSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .requestMatchers()
-                .antMatchers("/v3/api-docs*/**", "/swagger-ui*/**");
+                .antMatchers("/v3/api-docs*/**", "/swagger-ui*/**", "/actuator/**");
 
         httpSecurity
                 .authorizeRequests()
@@ -78,8 +78,7 @@ public class SpringSecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().antMatchers(
-                "/h2-console/**",
-                "/actuator/**"
+                "/h2-console/**"
         );
     }
 

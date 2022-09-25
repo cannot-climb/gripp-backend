@@ -4,6 +4,7 @@ import kr.njw.gripp.global.auth.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,28 +26,51 @@ public class SpringSecurityConfig {
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeRequests()
-                .antMatchers("/auth/**").permitAll()
-                .anyRequest().hasAuthority(Authority.USER.getValue());
-
-        httpSecurity.exceptionHandling()
-                .authenticationEntryPoint(this.jwtAuthenticationEntryPoint)
-                .accessDeniedHandler(this.jwtAccessDeniedHandler);
+    @Order(1)
+    public SecurityFilterChain adminSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .requestMatchers()
+                .antMatchers("/v3/api-docs*/**", "/swagger-ui*/**");
 
         httpSecurity
+                .authorizeRequests()
+                .anyRequest().hasRole(Role.ADMIN.getValue());
+
+        httpSecurity
+                .httpBasic().and()
                 .formLogin().disable()
-                .httpBasic().disable()
                 .rememberMe().disable()
-                .logout().disable();
+                .logout().disable()
+                .csrf().disable()
+                .cors().and()
+                .headers().defaultsDisabled().cacheControl().and().and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        httpSecurity.csrf().disable();
-        httpSecurity.cors();
-        httpSecurity.headers().defaultsDisabled().cacheControl();
-        httpSecurity.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        return httpSecurity.build();
+    }
 
-        httpSecurity.addFilterBefore(new JwtAuthenticationFilter(this.jwtAuthenticationProvider),
-                UsernamePasswordAuthenticationFilter.class);
+    @Bean
+    @Order(2)
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .authorizeRequests()
+                .antMatchers("/auth/**").permitAll()
+                .anyRequest().hasRole(Role.USER.getValue());
+
+        httpSecurity
+                .httpBasic().disable()
+                .formLogin().disable()
+                .rememberMe().disable()
+                .logout().disable()
+                .csrf().disable()
+                .cors().and()
+                .headers().defaultsDisabled().cacheControl().and().and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                .exceptionHandling()
+                .authenticationEntryPoint(this.jwtAuthenticationEntryPoint)
+                .accessDeniedHandler(this.jwtAccessDeniedHandler).and()
+                .addFilterBefore(new JwtAuthenticationFilter(this.jwtAuthenticationProvider),
+                        UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }
@@ -54,8 +78,8 @@ public class SpringSecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().antMatchers(
-                "/v3/api-docs*/**", "/swagger-ui*/**",
-                "/h2-console/**", "/actuator/**"
+                "/h2-console/**",
+                "/actuator/**"
         );
     }
 

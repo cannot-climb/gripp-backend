@@ -27,11 +27,11 @@ public class JwtAuthenticationProvider {
         this.secret = Base64.getEncoder().encodeToString(secret.getBytes());
     }
 
-    public String createToken(String username, List<Authority> authorities) {
+    public String createToken(String username, List<Role> roles) {
         Date now = new Date();
         Claims claims = Jwts.claims().setSubject(username);
 
-        claims.put(AUTHORITIES_KEY, authorities.stream().map(Authority::getValue).collect(Collectors.toList()));
+        claims.put(AUTHORITIES_KEY, roles.stream().map(Role::toAuthority).collect(Collectors.toList()));
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -50,7 +50,7 @@ public class JwtAuthenticationProvider {
         Collection<? extends GrantedAuthority> authorities = this.getAuthorities(claims);
         UserDetails userDetails = new User(claims.getSubject(), "", authorities);
 
-        if (StringUtils.isBlank(claims.getSubject()) || authorities.isEmpty()) {
+        if (StringUtils.isBlank(claims.getSubject())) {
             return Optional.empty();
         }
 

@@ -7,12 +7,13 @@ server:
 
 spring:
   datasource:
-    url: jdbc:h2:tcp://localhost/~/gripp
-    driver-class-name: org.h2.Driver
-    username: sa
+    url: jdbc:mysql://${env.GRIPP_DB_HOSTNAME}:${env.GRIPP_DB_PORT}/${env.GRIPP_DB_SCHEMA}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${env.GRIPP_DB_USERNAME}
+    password: ${env.GRIPP_DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
@@ -20,8 +21,8 @@ spring:
     open-in-view: false
   security:
     user:
-      name: gripp
-      password: $2a$10$LYAbcKFc65ImHQYH32mF0OJFquXIRy8m9PPJgWTJ2AOfohdPb8tja
+      name: ${env.GRIPP_ADMIN_NAME}
+      password: ${env.GRIPP_ADMIN_PASSWORD}
       roles: ADMIN
 
 springdoc:
@@ -34,6 +35,9 @@ springdoc:
   cache:
     disabled: true
 
+.env:
+  ignoreIfMissing: false
+
 gripp:
   jwt:
-    secret: gripp
+    secret: ${env.GRIPP_JWT_SECRET}

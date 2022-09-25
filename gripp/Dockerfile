@@ -2,10 +2,8 @@ FROM eclipse-temurin:17 AS gradle
 WORKDIR /gradle
 COPY gradlew build.gradle settings.gradle ./
 COPY ./gradle/ ./gradle/
-RUN ["chmod", "+x", "./gradlew"]
 RUN ["./gradlew", "dependencies", "--no-daemon"]
 COPY ./ ./
-RUN ["chmod", "+x", "./gradlew"]
 RUN ["./gradlew", "clean", "bootJar", "--no-daemon"]
 
 FROM eclipse-temurin:17

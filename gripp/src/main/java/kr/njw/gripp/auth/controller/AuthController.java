@@ -13,6 +13,8 @@ import kr.njw.gripp.auth.controller.dto.SignUpRequest;
 import kr.njw.gripp.auth.controller.dto.SignUpResponse;
 import kr.njw.gripp.global.dto.ErrorResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,7 @@ import java.util.List;
 @RequestMapping("/auth")
 public class AuthController {
     private final AccountApplication accountApplication;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Operation(summary = "회원가입", description = "회원가입 API")
     @ApiResponses({
@@ -41,11 +44,14 @@ public class AuthController {
         boolean result = this.accountApplication.signUp(request);
 
         if (result) {
+            this.logger.info("회원가입 완료 - " + request.getUsername());
             return ResponseEntity.ok(new SignUpResponse());
         }
 
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setErrors(List.of("fail to sign up"));
+        this.logger.warn("회원가입 실패 - " + request.getUsername());
+
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 

@@ -5,6 +5,8 @@ import kr.njw.gripp.auth.entity.Account;
 import kr.njw.gripp.auth.repository.AccountRepository;
 import kr.njw.gripp.auth.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,9 +17,11 @@ import java.util.Optional;
 public class AccountApplication {
     private final AccountRepository accountRepository;
     private final PasswordUtil passwordUtil;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public boolean signUp(SignUpRequest request) {
         if (this.isUsernameExisted(request.getUsername())) {
+            this.logger.warn("아이디가 이미 존재합니다 - " + request.getUsername());
             return false;
         }
 

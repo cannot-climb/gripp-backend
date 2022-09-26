@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "Gripp Api",
                 description = "Gripp 애플리케이션 서버 API 명세서",
-                version = "v220925"
+                version = "v1"
         ),
         servers = {
                 @Server(url = "/", description = "Default API Server")

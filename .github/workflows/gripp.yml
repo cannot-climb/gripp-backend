@@ -1,0 +1,49 @@
+name: Gripp
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - gripp/**
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_GRIPP_DB_HOSTNAME: ${{ secrets.GRIPP_DB_HOSTNAME }}
+          envkey_GRIPP_DB_PORT: ${{ secrets.GRIPP_DB_PORT }}
+          envkey_GRIPP_DB_SCHEMA: ${{ secrets.GRIPP_DB_SCHEMA }}
+          envkey_GRIPP_DB_USERNAME: ${{ secrets.GRIPP_DB_USERNAME }}
+          envkey_GRIPP_DB_PASSWORD: ${{ secrets.GRIPP_DB_PASSWORD }}
+          envkey_GRIPP_ADMIN_NAME: ${{ secrets.GRIPP_ADMIN_NAME }}
+          envkey_GRIPP_ADMIN_PASSWORD: ${{ secrets.GRIPP_ADMIN_PASSWORD }}
+          envkey_GRIPP_JWT_SECRET: ${{ secrets.GRIPP_JWT_SECRET }}
+          directory: gripp/src/main/resources
+          file_name: .env
+          fail_on_empty: true
+      - name: Deploy
+        uses: easingthemes/ssh-deploy@v2
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_SSH_HOST }}
+          REMOTE_PORT: ${{ secrets.REMOTE_SSH_PORT }}
+          REMOTE_USER: ${{ secrets.REMOTE_SSH_USERNAME }}
+          SSH_PRIVATE_KEY: ${{ secrets.REMOTE_SSH_KEY }}
+          ARGS: -avz --delete
+          TARGET: gripp-backend/
+          EXCLUDE: .git, .github
+      - name: Build Docker
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_SSH_HOST }}
+          port: ${{ secrets.REMOTE_SSH_PORT }}
+          username: ${{ secrets.REMOTE_SSH_USERNAME }}
+          key: ${{ secrets.REMOTE_SSH_KEY }}
+          script: |
+            cd ~/gripp-backend
+            docker compose up -d --build
+            docker image prune -f

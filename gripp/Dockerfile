@@ -4,7 +4,7 @@ COPY gradlew build.gradle settings.gradle .
 COPY ./gradle ./gradle
 RUN ["./gradlew", "dependencies", "--no-daemon"]
 COPY . .
-RUN ["./gradlew", "clean", "bootJar", "--no-daemon"]
+RUN ["./gradlew", "clean", "build", "--no-daemon"]
 
 FROM eclipse-temurin:17
 EXPOSE 8080

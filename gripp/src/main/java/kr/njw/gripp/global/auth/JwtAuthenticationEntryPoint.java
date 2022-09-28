@@ -21,7 +21,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException authException) throws IOException {
         int status = HttpServletResponse.SC_UNAUTHORIZED;
         ErrorResponse errorResponse = new ErrorResponse();
-        errorResponse.setErrors(List.of(status + " " + HttpStatus.valueOf(status).getReasonPhrase()));
+        errorResponse.setErrors(
+                List.of("common error: " + status + " " + HttpStatus.valueOf(status).getReasonPhrase().toLowerCase()));
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");

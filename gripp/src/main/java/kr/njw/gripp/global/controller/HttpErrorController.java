@@ -17,7 +17,8 @@ public class HttpErrorController implements ErrorController {
     public ErrorResponse error(HttpServletResponse response) {
         ErrorResponse errorResponse = new ErrorResponse();
         errorResponse.setErrors(
-                List.of(response.getStatus() + " " + HttpStatus.valueOf(response.getStatus()).getReasonPhrase()));
+                List.of("common error: " + response.getStatus() + " " +
+                        HttpStatus.valueOf(response.getStatus()).getReasonPhrase().toLowerCase()));
 
         return errorResponse;
     }

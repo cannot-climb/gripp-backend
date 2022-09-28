@@ -1,8 +1,6 @@
 package kr.njw.gripp.auth.application;
 
-import kr.njw.gripp.auth.application.dto.LoginAppRequest;
-import kr.njw.gripp.auth.application.dto.LoginAppResponse;
-import kr.njw.gripp.auth.application.dto.SignUpAppRequest;
+import kr.njw.gripp.auth.application.dto.*;
 import kr.njw.gripp.auth.entity.Account;
 import kr.njw.gripp.auth.entity.AccountToken;
 import kr.njw.gripp.auth.repository.AccountRepository;
@@ -70,6 +68,43 @@ public class AccountApplicationImpl implements AccountApplication {
         response.setAccessToken(
                 this.jwtAuthenticationProvider.createToken(account.get().getUsername(), List.of(Role.USER)));
         response.setRefreshToken(accountToken.getRefreshToken());
+        return response;
+    }
+
+    @Transactional
+    public RefreshTokenAppResponse refreshToken(RefreshTokenAppRequest request) {
+        Optional<Account> account = this.accountRepository.findByUsername(request.getUsername());
+
+        if (account.isEmpty()) {
+            RefreshTokenAppResponse response = new RefreshTokenAppResponse();
+            response.setSuccess(false);
+            this.logger.warn("회원이 존재하지 않습니다 - " + request.getUsername());
+            return response;
+        }
+
+        Optional<AccountToken> accountToken = this.accountTokenRepository.findByAccount(account.get());
+
+        if (accountToken.isEmpty() || !accountToken.get().getRefreshToken().equals(request.getRefreshToken())) {
+            RefreshTokenAppResponse response = new RefreshTokenAppResponse();
+            response.setSuccess(false);
+            this.logger.warn("리프레시 토큰이 올바르지 않습니다 - " + request.getRefreshToken());
+            return response;
+        }
+
+        if (!accountToken.get().isValid()) {
+            RefreshTokenAppResponse response = new RefreshTokenAppResponse();
+            response.setSuccess(false);
+            return response;
+        }
+
+        accountToken.get().rotate();
+        this.accountTokenRepository.save(accountToken.get());
+
+        RefreshTokenAppResponse response = new RefreshTokenAppResponse();
+        response.setSuccess(true);
+        response.setAccessToken(
+                this.jwtAuthenticationProvider.createToken(account.get().getUsername(), List.of(Role.USER)));
+        response.setRefreshToken(accountToken.get().getRefreshToken());
         return response;
     }
 

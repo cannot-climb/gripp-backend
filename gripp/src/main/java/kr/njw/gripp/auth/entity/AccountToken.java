@@ -28,6 +28,10 @@ public class AccountToken {
     private LocalDateTime expireDateTime;
 
     public void rotate() {
+        if (this.account == null) {
+            throw new RuntimeException("no account");
+        }
+
         this.refreshToken = RandomStringUtils.randomAlphanumeric(64);
         this.registerDateTime = LocalDateTime.now();
     }
@@ -39,5 +43,9 @@ public class AccountToken {
 
         this.rotate();
         this.expireDateTime = this.registerDateTime.plusDays(30);
+    }
+
+    public boolean isValid() {
+        return this.expireDateTime.isAfter(LocalDateTime.now());
     }
 }

@@ -32,6 +32,7 @@ springdoc:
     path: /swagger-ui
     display-request-duration: true
     disable-swagger-default-url: false
+    operations-sorter: alpha
   cache:
     disabled: true
   show-actuator: true

@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class SignUpResponse {
-    @Schema(allowableValues = "SUCCESS")
-    private final String code = "SUCCESS";
+    @Schema(description = "유저 아이디", example = "njw1204")
+    private String username;
 }

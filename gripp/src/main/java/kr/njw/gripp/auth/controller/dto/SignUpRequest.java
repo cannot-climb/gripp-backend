@@ -15,7 +15,7 @@ public class SignUpRequest {
     @Pattern(regexp = "\\w*", message = "must contain only alphanumeric characters")
     private String username;
 
-    @Schema(description = "유저 비밀번호 (영숫자 포함, 8자 이상 64자 이하)", example = "pass1234")
+    @Schema(description = "유저 비밀번호 (영숫자 모두 포함, 8자 이상 64자 이하)", example = "pass1234")
     @NotNull(message = "must not be null")
     @Size(min = 8, max = 64, message = "size must be between 8 and 64")
     @Pattern(regexp = "[\\w\\p{Punct}]*", message = "must contain only alphanumeric characters and punctuations")

@@ -9,5 +9,7 @@ public interface AccountApplication {
 
     RefreshTokenAppResponse refreshToken(RefreshTokenAppRequest request);
 
+    boolean deleteRefreshToken(DeleteRefreshTokenAppRequest request);
+
     boolean isUsernameExisted(String username);
 }

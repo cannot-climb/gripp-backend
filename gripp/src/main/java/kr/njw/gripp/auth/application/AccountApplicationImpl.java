@@ -108,6 +108,30 @@ public class AccountApplicationImpl implements AccountApplication {
         return response;
     }
 
+    @Transactional
+    public boolean deleteRefreshToken(DeleteRefreshTokenAppRequest request) {
+        Optional<Account> account = this.accountRepository.findByUsername(request.getUsername());
+
+        if (account.isEmpty()) {
+            this.logger.warn("회원이 존재하지 않습니다 - " + request.getUsername());
+            return false;
+        }
+
+        Optional<AccountToken> accountToken = this.accountTokenRepository.findByAccount(account.get());
+
+        if (accountToken.isEmpty() || !accountToken.get().getRefreshToken().equals(request.getRefreshToken())) {
+            this.logger.warn("리프레시 토큰이 올바르지 않습니다 - " + request.getRefreshToken());
+            return false;
+        }
+
+        if (!accountToken.get().isValid()) {
+            return false;
+        }
+
+        this.accountTokenRepository.delete(accountToken.get());
+        return true;
+    }
+
     public boolean isUsernameExisted(String username) {
         Optional<Account> account = this.accountRepository.findByUsername(username);
         return account.isPresent();

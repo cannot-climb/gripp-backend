@@ -139,4 +139,36 @@ public class AuthController {
         response.setRefreshToken(appResponse.getRefreshToken().get());
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "리프레시 토큰 폐기", description = "리프레시 토큰 폐기 API")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "폐기 완료",
+                    content = @Content(schema = @Schema(implementation = DeleteRefreshTokenResponse.class))),
+            @ApiResponse(responseCode = "400", description = "폐기 실패 (Bad Request)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "폐기 실패 (Not Found) / ex: 리프레시 토큰이 틀렸거나 만료된 경우",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @DeleteMapping("/accounts/{username}/tokens/{refreshToken}")
+    public ResponseEntity<?> deleteRefreshToken(
+            @Parameter(description = "유저 아이디", example = "njw1204") @PathVariable("username") String username,
+            @Parameter(description = "리프레시 토큰",
+                    example = "4Hs3UYPeGWvvSLWB3cYOZoWzuwZstsvqJdOoHCn1JyspPiiWxTVmS1hcBWKaQQat")
+            @PathVariable("refreshToken") String refreshToken) {
+        DeleteRefreshTokenAppRequest appRequest = new DeleteRefreshTokenAppRequest();
+        appRequest.setUsername(username);
+        appRequest.setRefreshToken(refreshToken);
+
+        boolean appResponse = this.accountApplication.deleteRefreshToken(appRequest);
+
+        if (!appResponse) {
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setErrors(List.of("fail to delete"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        DeleteRefreshTokenResponse response = new DeleteRefreshTokenResponse();
+        response.setUsername(username);
+        return ResponseEntity.ok(response);
+    }
 }

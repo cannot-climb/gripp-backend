@@ -45,7 +45,7 @@ public class AccountToken {
         this.expireDateTime = this.registerDateTime.plusDays(30);
     }
 
-    public boolean isValid() {
-        return this.expireDateTime.isAfter(LocalDateTime.now());
+    public boolean isExpired() {
+        return !LocalDateTime.now().isBefore(this.expireDateTime);
     }
 }

@@ -20,6 +20,6 @@ public class Account {
     private String username;
     @Column(length = 100, nullable = false)
     private String password;
-    @Column
+    @Column(nullable = false)
     private LocalDateTime registerDateTime;
 }

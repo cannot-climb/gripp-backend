@@ -59,20 +59,28 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "회원조회", description = "회원조회 API")
+    @Operation(summary = "회원찾기", description = "회원찾기 API")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "조회 완료",
+            @ApiResponse(responseCode = "200", description = "찾기 완료",
                     content = @Content(schema = @Schema(implementation = FindAccountResponse.class))),
-            @ApiResponse(responseCode = "400", description = "조회 실패 (Bad Request)",
+            @ApiResponse(responseCode = "400", description = "찾기 실패 (Bad Request)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "찾기 실패 (Not Found) / ex: 아이디가 존재하지 않는 경우",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     @GetMapping("/accounts/{username}")
-    public ResponseEntity<FindAccountResponse> findAccount(
+    public ResponseEntity<?> findAccount(
             @Parameter(description = "유저 아이디", example = "njw1204") @PathVariable("username") String username) {
         boolean appResponse = this.accountApplication.isUsernameExisted(username);
 
+        if (!appResponse) {
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setErrors(List.of("fail to find account"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
         FindAccountResponse response = new FindAccountResponse();
-        response.setResult(appResponse);
+        response.setUsername(username);
         return ResponseEntity.ok(response);
     }
 

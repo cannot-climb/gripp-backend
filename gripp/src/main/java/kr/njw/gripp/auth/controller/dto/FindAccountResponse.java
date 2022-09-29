@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class FindAccountResponse {
-    @Schema(description = "조회 결과 (true: 있음, false: 없음)", example = "false")
-    private boolean result;
+    @Schema(description = "유저 아이디", example = "njw1204")
+    private String username;
 }

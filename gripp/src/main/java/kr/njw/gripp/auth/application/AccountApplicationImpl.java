@@ -18,8 +18,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class AccountApplicationImpl implements AccountApplication {
     private final AccountRepository accountRepository;
     private final AccountTokenRepository accountTokenRepository;
@@ -91,7 +91,7 @@ public class AccountApplicationImpl implements AccountApplication {
             return response;
         }
 
-        if (!accountToken.get().isValid()) {
+        if (accountToken.get().isExpired()) {
             RefreshTokenAppResponse response = new RefreshTokenAppResponse();
             response.setSuccess(false);
             return response;
@@ -124,7 +124,7 @@ public class AccountApplicationImpl implements AccountApplication {
             return false;
         }
 
-        if (!accountToken.get().isValid()) {
+        if (accountToken.get().isExpired()) {
             return false;
         }
 

@@ -4,6 +4,8 @@ public enum Role {
     USER("USER"),
     ADMIN("ADMIN");
 
+    public static final String AUTHORITY_PREFIX = "ROLE_";
+
     private final String value;
 
     Role(String value) {
@@ -15,6 +17,6 @@ public enum Role {
     }
 
     public String toAuthority() {
-        return "ROLE_" + this.value;
+        return AUTHORITY_PREFIX + this.value;
     }
 }

@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 public class UserApplicationImpl implements UserApplication {
     private static final long LEADER_BOARD_TOP_BOARD_SIZE = 10;
     private static final long LEADER_BOARD_DEFAULT_BOARD_SIZE = 21;
+    private static final long LEADER_BOARD_DEFAULT_BOARD_SIDE_SIZE = (LEADER_BOARD_DEFAULT_BOARD_SIZE - 1) / 2;
 
     private final UserRepository userRepository;
     private final EntityManager entityManager;
@@ -58,18 +59,17 @@ public class UserApplicationImpl implements UserApplication {
         response.setSuccess(true);
 
         try (Stream<User> users = this.userRepository.findAllByOrderByScoreDescIdAsc()) {
-            final long DEFAULT_BOARD_SIDE_SIZE = (LEADER_BOARD_DEFAULT_BOARD_SIZE - 1) / 2;
-            final long RANK_END = this.userRepository.countByScoreGreaterThan(0) + 1;
-            final AtomicLong fetchedUserCount = new AtomicLong(0);
-            final AtomicLong lastRank = new AtomicLong(0);
-            final AtomicInteger lastScore = new AtomicInteger(0);
-            final AtomicBoolean isMeFetched = new AtomicBoolean(false);
-            final Queue<FindUserAppResponse> defaultBoardTopQueue = new LinkedList<>();
-            final AtomicLong defaultBoardBottomRemainSize = new AtomicLong(DEFAULT_BOARD_SIDE_SIZE);
+            long rankEnd = this.userRepository.countByScoreGreaterThan(0) + 1;
+            AtomicLong fetchedUserCount = new AtomicLong(0);
+            AtomicLong lastRank = new AtomicLong(0);
+            AtomicInteger lastScore = new AtomicInteger(0);
+            AtomicBoolean isMeFetched = new AtomicBoolean(false);
+            Queue<FindUserAppResponse> defaultBoardTopQueue = new LinkedList<>();
+            AtomicLong defaultBoardBottomRemainSize = new AtomicLong(LEADER_BOARD_DEFAULT_BOARD_SIDE_SIZE);
 
             users.takeWhile(__ -> response.getTopBoard().size() < LEADER_BOARD_TOP_BOARD_SIZE
                     || defaultBoardBottomRemainSize.get() > 0).forEach(aUser -> {
-                final long rank;
+                long rank;
 
                 if (aUser.getScore() != lastScore.get()) {
                     rank = fetchedUserCount.get() + 1;
@@ -82,7 +82,7 @@ public class UserApplicationImpl implements UserApplication {
                 lastScore.set(aUser.getScore());
 
                 if (response.getTopBoard().size() < LEADER_BOARD_TOP_BOARD_SIZE) {
-                    response.getTopBoard().add(this.createFindUserAppResponse(aUser, rank, RANK_END));
+                    response.getTopBoard().add(this.createFindUserAppResponse(aUser, rank, rankEnd));
                 }
 
                 if (aUser == user.get()) {
@@ -90,18 +90,18 @@ public class UserApplicationImpl implements UserApplication {
                         response.getDefaultBoard().add(defaultBoardTopQueue.remove());
                     }
 
-                    response.getDefaultBoard().add(this.createFindUserAppResponse(aUser, rank, RANK_END));
+                    response.getDefaultBoard().add(this.createFindUserAppResponse(aUser, rank, rankEnd));
                     isMeFetched.set(true);
                 } else {
                     if (!isMeFetched.get()) {
-                        defaultBoardTopQueue.add(this.createFindUserAppResponse(aUser, rank, RANK_END));
+                        defaultBoardTopQueue.add(this.createFindUserAppResponse(aUser, rank, rankEnd));
 
-                        if (defaultBoardTopQueue.size() > DEFAULT_BOARD_SIDE_SIZE) {
+                        if (defaultBoardTopQueue.size() > LEADER_BOARD_DEFAULT_BOARD_SIDE_SIZE) {
                             defaultBoardTopQueue.remove();
                         }
                     } else {
                         if (defaultBoardBottomRemainSize.get() > 0) {
-                            response.getDefaultBoard().add(this.createFindUserAppResponse(aUser, rank, RANK_END));
+                            response.getDefaultBoard().add(this.createFindUserAppResponse(aUser, rank, rankEnd));
                             defaultBoardBottomRemainSize.getAndDecrement();
                         }
                     }

@@ -59,7 +59,10 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "회원찾기", description = "회원찾기 API")
+    @Operation(summary = "회원찾기", description = """
+            회원찾기 API
+
+            유저 아이디 중복 체크 시 사용 가능""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "찾기 완료",
                     content = @Content(schema = @Schema(implementation = FindAccountResponse.class))),
@@ -84,7 +87,24 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "로그인", description = "로그인 API")
+    @Operation(summary = "로그인", description = """
+            로그인 API
+
+            리프레시 토큰이 없거나 만료됐을 때 호출
+
+            - 엑세스 토큰은 사용자 인증을 위한 토큰
+            - 리프레시 토큰은 토큰 갱신을 위한 토큰
+
+            로그인 시 기존 토큰은 모두 폐기됨
+
+            퍼블릭 엔드포인트를 제외한 모든 API 호출시 헤더에 엑세스 토큰을 포함하여 호출해야 되는데,\040\040
+            그러한 엔드포인트 호출시 엑세스 토큰이 만료된 상태면 HTTP 401 에러가 반환됨\040\040
+            이때는 토큰 갱신 API 호출 필요
+
+            - 엑세스 토큰의 유효기간 : 약 30분
+            - 리프레시 토큰의 유효기간 : 약 30일
+
+            비밀번호는 절대로 어딘가에 저장하지 말 것, 토큰만 저장해서 사용 바람""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "로그인 완료",
                     content = @Content(schema = @Schema(implementation = LoginResponse.class))),
@@ -116,7 +136,19 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "토큰 갱신", description = "토큰 갱신 API")
+    @Operation(summary = "토큰 갱신", description = """
+            토큰 갱신 API
+
+            엑세스 토큰이 없거나 만료됐을 때 호출
+
+            토큰 갱신 시 기존 토큰은 모두 폐기됨
+
+            - 새로운 엑세스 토큰의 유효기간 : 약 30분 연장됨
+            - 새로운 리프레시 토큰의 유효기간 : 연장되지 않음
+
+            토큰 갱신 API 호출시 리프레시 토큰이 만료된 상태면 HTTP 401 에러가 반환됨\040\040
+            이때는 로그인 API 호출 필요\040\040
+            (사용자에게 별도 UI를 통해 비밀번호를 다시 입력받고 로그인 API를 호출해야 됨)""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "갱신 완료",
                     content = @Content(schema = @Schema(implementation = RefreshTokenResponse.class))),
@@ -148,7 +180,14 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "리프레시 토큰 폐기", description = "리프레시 토큰 폐기 API")
+    @Operation(summary = "리프레시 토큰 폐기", description = """
+            리프레시 토큰 폐기 API
+
+            로그아웃시 호출 권장 (로그아웃을 하는 API는 아님, 실제 로그아웃 처리는 앱에서만 해도 됨)
+
+            요청한 리프레시 토큰이 유효하지 않은 경우 폐기 실패됨
+
+            폐기 실패할 경우가 종종 있을건데, 딱히 문제는 없으니 실패하여도 로그아웃 처리는 정상적으로 진행 바람""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "폐기 완료",
                     content = @Content(schema = @Schema(implementation = DeleteRefreshTokenResponse.class))),

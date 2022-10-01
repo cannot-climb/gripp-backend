@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
 )
 @OpenAPIDefinition(
         info = @Info(
-                title = "Gripp Api",
+                title = "Gripp API",
                 description = "Gripp 애플리케이션 서버 API 명세서",
                 version = "v1"
         ),

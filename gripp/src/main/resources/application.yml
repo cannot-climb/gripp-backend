@@ -33,6 +33,7 @@ springdoc:
     display-request-duration: true
     disable-swagger-default-url: false
     operations-sorter: alpha
+    persist-authorization: true
   cache:
     disabled: true
   show-actuator: true

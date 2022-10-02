@@ -4,7 +4,6 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "user")
@@ -20,15 +19,15 @@ public class User {
     @Column(length = 100, nullable = false, unique = true)
     private String username;
     @Column(nullable = false)
-    private Integer score;
+    private int score;
     @Column(nullable = false)
-    private Integer articleCount;
+    private int articleCount;
     @Column(nullable = false)
-    private Integer articleCertifiedCount;
+    private int articleCertifiedCount;
     @Column(nullable = false)
     private LocalDateTime registerDateTime;
 
     public int getTier() {
-        return (Objects.requireNonNullElse(this.score, 0) + 50) / 100;
+        return (this.score + 50) / 100;
     }
 }

@@ -22,6 +22,8 @@ spring:
         format_sql: true
         show_sql: true
     open-in-view: false
+  rabbitmq:
+    addresses: ${env.GRIPP_RABBITMQ_ADDRESS}
   security:
     user:
       name: ${env.GRIPP_ADMIN_NAME}

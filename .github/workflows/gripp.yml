@@ -20,6 +20,7 @@ jobs:
           envkey_GRIPP_DB_SCHEMA: ${{ secrets.GRIPP_DB_SCHEMA }}
           envkey_GRIPP_DB_USERNAME: ${{ secrets.GRIPP_DB_USERNAME }}
           envkey_GRIPP_DB_PASSWORD: ${{ secrets.GRIPP_DB_PASSWORD }}
+          envkey_GRIPP_RABBITMQ_ADDRESS: ${{ secrets.GRIPP_RABBITMQ_ADDRESS }}
           envkey_GRIPP_ADMIN_NAME: ${{ secrets.GRIPP_ADMIN_NAME }}
           envkey_GRIPP_ADMIN_PASSWORD: ${{ secrets.GRIPP_ADMIN_PASSWORD }}
           envkey_GRIPP_JWT_SECRET: ${{ secrets.GRIPP_JWT_SECRET }}

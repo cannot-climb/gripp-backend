@@ -20,6 +20,8 @@ public class Video {
     @Column(length = 36, nullable = false, unique = true)
     private String uuid;
     @Column(columnDefinition = "TEXT", nullable = false)
+    private String streamingUrl;
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String originalFileName;
     @Column(length = 10, nullable = false)
     private String originalFileExtension;
@@ -27,4 +29,9 @@ public class Video {
     private VideoStatus status;
     @Column(nullable = false)
     private LocalDateTime registerDateTime;
+
+    public void startStreaming(String streamingUrl, boolean certified) {
+        this.streamingUrl = streamingUrl;
+        this.status = certified ? VideoStatus.CERTIFIED : VideoStatus.NO_CERTIFIED;
+    }
 }

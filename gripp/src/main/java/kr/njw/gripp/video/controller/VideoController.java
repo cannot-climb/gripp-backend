@@ -57,7 +57,7 @@ public class VideoController {
         }
 
         UploadVideoResponse response = new UploadVideoResponse();
-        response.setVideoUUID(appResponse.getUuid());
+        response.setVideoId(appResponse.getUuid());
         return ResponseEntity.ok(response);
     }
 }

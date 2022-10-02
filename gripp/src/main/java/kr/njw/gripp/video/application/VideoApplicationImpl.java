@@ -133,7 +133,7 @@ public class VideoApplicationImpl implements VideoApplication {
     @RabbitListener(queues = RabbitConfig.VIDEO_PROCESSOR_RETURN_QUEUE_KEY)
     public void onReturnVideoProcessor(VideoProcessorResponse response) {
         this.logger.info("영상 처리 응답 수신 - " + response);
-        Optional<Video> video = this.videoRepository.findByUuid(response.getUuid());
+        Optional<Video> video = this.videoRepository.findByUuidForUpdate(response.getUuid());
 
         if (video.isEmpty()) {
             this.logger.error("영상이 존재하지 않습니다 - " + response);

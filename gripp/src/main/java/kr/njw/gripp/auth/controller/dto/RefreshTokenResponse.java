@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class RefreshTokenResponse {
-    @Schema(description = "엑세스 토큰 (유효기간 약 30분 연장됨)",
+    @Schema(description = "엑세스 토큰 (유효기간 약 60분 연장됨)",
             example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
                     ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ" +
                     ".SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")

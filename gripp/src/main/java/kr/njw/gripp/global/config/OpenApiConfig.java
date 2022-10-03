@@ -13,6 +13,11 @@ import org.springframework.context.annotation.Configuration;
         scheme = "bearer",
         bearerFormat = "JWT"
 )
+@SecurityScheme(
+        name = "admin",
+        type = SecuritySchemeType.HTTP,
+        scheme = "basic"
+)
 @OpenAPIDefinition(
         info = @Info(
                 title = "Gripp API",

@@ -1,5 +1,6 @@
 package kr.njw.gripp.video.application;
 
+import kr.njw.gripp.global.config.GrippConfig;
 import kr.njw.gripp.global.config.RabbitConfig;
 import kr.njw.gripp.video.application.dto.UploadVideoAppResponse;
 import kr.njw.gripp.video.entity.Video;
@@ -37,7 +38,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 public class VideoApplicationImpl implements VideoApplication {
-    private static final String UPLOAD_DIRECTORY = "upload/";
     private static final String EXTENSION_PATTERN = "mp4|mov";
     private static final String MIME_TYPE_PATTERN = "video/mp4|video/quicktime";
     private static final long MIN_DURATION_IN_SECONDS = 5;
@@ -100,6 +100,7 @@ public class VideoApplicationImpl implements VideoApplication {
                 return response;
             }
         } catch (SAXException | TikaException e) {
+            this.logger.error("Tika 에러 - " + e);
             throw new IOException(e.getMessage());
         }
 
@@ -114,7 +115,7 @@ public class VideoApplicationImpl implements VideoApplication {
                 .build());
 
         String fileName = uuid + "." + extension;
-        Path dest = Paths.get(UPLOAD_DIRECTORY, fileName);
+        Path dest = Paths.get(GrippConfig.FILE_UPLOAD_PATH, fileName);
         Files.createDirectories(dest.getParent());
         file.transferTo(dest);
         this.logger.info("영상 업로드 완료 - " + originalFileName + ", " + dest);

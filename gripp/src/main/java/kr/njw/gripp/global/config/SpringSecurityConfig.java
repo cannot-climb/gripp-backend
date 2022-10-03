@@ -51,6 +51,30 @@ public class SpringSecurityConfig {
 
     @Bean
     @Order(2)
+    public SecurityFilterChain downloadFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .requestMatchers()
+                .antMatchers("/download/**");
+
+        httpSecurity
+                .authorizeRequests()
+                .anyRequest().hasRole(Role.ADMIN.getValue());
+
+        httpSecurity
+                .httpBasic().and()
+                .formLogin().disable()
+                .rememberMe().disable()
+                .logout().disable()
+                .csrf().disable()
+                .cors().and()
+                .headers().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        return httpSecurity.build();
+    }
+
+    @Bean
+    @Order(3)
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .authorizeRequests()

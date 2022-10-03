@@ -6,7 +6,9 @@ import kr.njw.gripp.video.application.dto.UploadVideoAppResponse;
 import kr.njw.gripp.video.entity.Video;
 import kr.njw.gripp.video.entity.vo.VideoStatus;
 import kr.njw.gripp.video.repository.VideoRepository;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.tika.Tika;
@@ -130,11 +132,11 @@ public class VideoApplicationImpl implements VideoApplication {
         return response;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @RabbitListener(queues = RabbitConfig.VIDEO_PROCESSOR_RETURN_QUEUE_KEY)
-    public void onReturnVideoProcessor(VideoProcessorResponse response) {
+    public void onReturnVideoProcessor(VideoProcessorResponse response) throws IOException {
         this.logger.info("영상 처리 응답 수신 - " + response);
-        Optional<Video> video = this.videoRepository.findByUuidForUpdate(response.getUuid());
+        Optional<Video> video = this.videoRepository.findByUuidForUpdate(response.getRequest().getUuid());
 
         if (video.isEmpty()) {
             this.logger.error("영상이 존재하지 않습니다 - " + response);
@@ -143,18 +145,22 @@ public class VideoApplicationImpl implements VideoApplication {
 
         video.get().startStreaming(response.getUrl(), response.isCertified());
         this.videoRepository.save(video.get());
+
+        Path dest = Paths.get(GrippConfig.FILE_UPLOAD_PATH, response.getRequest().getFile());
+        Files.deleteIfExists(dest);
     }
 
     @Data
-    @RequiredArgsConstructor
+    @NoArgsConstructor
+    @AllArgsConstructor
     private static class VideoProcessorRequest {
-        private final String uuid;
-        private final String file;
+        private String uuid;
+        private String file;
     }
 
     @Data
     private static class VideoProcessorResponse {
-        private String uuid;
+        private VideoProcessorRequest request;
         private String url;
         private boolean certified;
     }

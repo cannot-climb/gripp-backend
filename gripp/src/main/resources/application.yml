@@ -24,6 +24,15 @@ spring:
     open-in-view: false
   rabbitmq:
     addresses: ${env.GRIPP_RABBITMQ_ADDRESS}
+    listener:
+      simple:
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 5
+          initial-interval: 1000ms
+          multiplier: 2
+          max-interval: 10000ms
   security:
     user:
       name: ${env.GRIPP_ADMIN_NAME}

@@ -33,7 +33,10 @@ import java.util.stream.Collectors;
 public class UserController {
     private final UserApplication userApplication;
 
-    @Operation(summary = "회원정보", description = "회원정보 API")
+    @Operation(summary = "회원정보", description = """
+            회원정보 API
+
+            URI에 주어진 회원의 정보를 반환""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 완료",
                     content = @Content(schema = @Schema(implementation = FindUserResponse.class))),
@@ -58,7 +61,10 @@ public class UserController {
         return ResponseEntity.ok(this.createFindUserResponse(appResponse));
     }
 
-    @Operation(summary = "리더보드", description = "리더보드 API")
+    @Operation(summary = "리더보드", description = """
+            리더보드 API
+
+            URI에 주어진 회원 기준의 리더보드를 반환""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 완료",
                     content = @Content(schema = @Schema(implementation = FindLeaderBoardResponse.class))),

@@ -46,17 +46,19 @@ springdoc:
     persist-authorization: true
   cache:
     disabled: true
-  show-actuator: true
 
 management:
   endpoints:
     web:
       exposure:
         include:
+          - beans
           - env
           - health
           - httptrace
+          - mappings
           - metrics
+          - threaddump
   endpoint:
     health:
       show-details: always

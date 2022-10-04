@@ -5,6 +5,8 @@ services:
     build: "gripp"
     ports:
       - "127.0.0.1:8080:8080"
+    volumes:
+      - gripp-upload:/gripp/upload
     environment:
       TZ: "Asia/Seoul"
     logging:
@@ -13,3 +15,6 @@ services:
         max-size: "20m"
         max-file: "3"
     restart: "unless-stopped"
+
+volumes:
+  gripp-upload:

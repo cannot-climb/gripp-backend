@@ -140,7 +140,7 @@ public class VideoApplicationImpl implements VideoApplication {
 
         if (video.isEmpty()) {
             this.logger.error("영상이 존재하지 않습니다 - " + response);
-            return;
+            throw new RuntimeException("영상이 존재하지 않습니다 - " + response);
         }
 
         video.get().startStreaming(response.getUrl(), response.isCertified());

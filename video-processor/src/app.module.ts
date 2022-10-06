@@ -5,6 +5,7 @@ import {
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MessagingService } from './service/messaging.service';
+import { VideoService } from './service/video.service';
 
 @Module({
   imports: [
@@ -30,6 +31,6 @@ import { MessagingService } from './service/messaging.service';
     }),
   ],
   controllers: [],
-  providers: [MessagingService],
+  providers: [MessagingService, VideoService],
 })
 export class AppModule {}

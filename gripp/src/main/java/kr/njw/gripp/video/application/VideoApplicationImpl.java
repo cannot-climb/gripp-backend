@@ -107,14 +107,19 @@ public class VideoApplicationImpl implements VideoApplication {
         }
 
         String uuid = UUID.randomUUID().toString();
-        this.videoRepository.save(Video.builder()
-                .uuid(uuid)
-                .streamingUrl("")
-                .originalFileName(originalFileName)
-                .originalFileExtension(extension)
-                .status(VideoStatus.PREPROCESSING)
-                .registerDateTime(LocalDateTime.now())
-                .build());
+        this.videoRepository.save(
+                Video.builder()
+                        .uuid(uuid)
+                        .streamingUrl("")
+                        .streamingLength(0)
+                        .streamingAspectRatio(0)
+                        .thumbnailUrl("")
+                        .originalFileName(originalFileName)
+                        .originalFileExtension(extension)
+                        .status(VideoStatus.PREPROCESSING)
+                        .registerDateTime(LocalDateTime.now())
+                        .build()
+        );
 
         String fileName = uuid + "." + extension;
         Path dest = Paths.get(GrippConfig.FILE_UPLOAD_PATH, fileName);
@@ -143,10 +148,11 @@ public class VideoApplicationImpl implements VideoApplication {
             throw new RuntimeException("영상이 존재하지 않습니다 - " + response);
         }
 
-        video.get().startStreaming(response.getUrl(), response.isCertified());
+        video.get().startStreaming(response.getStreamingUrl(), response.getStreamingLength(),
+                response.getStreamingAspectRatio(), response.getThumbnailUrl(), response.isCertified());
         this.videoRepository.save(video.get());
 
-        Path dest = Paths.get(GrippConfig.FILE_UPLOAD_PATH, response.getRequest().getFile());
+        Path dest = Paths.get(GrippConfig.FILE_UPLOAD_PATH, response.getRequest().getFileName());
         Files.deleteIfExists(dest);
     }
 
@@ -155,13 +161,16 @@ public class VideoApplicationImpl implements VideoApplication {
     @AllArgsConstructor
     private static class VideoProcessorRequest {
         private String uuid;
-        private String file;
+        private String fileName;
     }
 
     @Data
     private static class VideoProcessorResponse {
         private VideoProcessorRequest request;
-        private String url;
+        private String streamingUrl;
+        private int streamingLength;
+        private double streamingAspectRatio;
+        private String thumbnailUrl;
         private boolean certified;
     }
 }

@@ -21,6 +21,12 @@ public class Video {
     private String uuid;
     @Column(columnDefinition = "TEXT", nullable = false)
     private String streamingUrl;
+    @Column(nullable = false)
+    private int streamingLength;
+    @Column(nullable = false)
+    private double streamingAspectRatio;
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String thumbnailUrl;
     @Column(columnDefinition = "TEXT", nullable = false)
     private String originalFileName;
     @Column(length = 10, nullable = false)
@@ -30,8 +36,12 @@ public class Video {
     @Column(nullable = false)
     private LocalDateTime registerDateTime;
 
-    public void startStreaming(String streamingUrl, boolean certified) {
+    public void startStreaming(String streamingUrl, int streamingLength, double streamingAspectRatio,
+                               String thumbnailUrl, boolean certified) {
         this.streamingUrl = streamingUrl;
+        this.streamingLength = streamingLength;
+        this.streamingAspectRatio = streamingAspectRatio;
+        this.thumbnailUrl = thumbnailUrl;
         this.status = certified ? VideoStatus.CERTIFIED : VideoStatus.NO_CERTIFIED;
     }
 }

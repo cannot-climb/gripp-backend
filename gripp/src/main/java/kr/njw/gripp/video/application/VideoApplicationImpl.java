@@ -51,7 +51,7 @@ public class VideoApplicationImpl implements VideoApplication {
     @Transactional(rollbackFor = Exception.class)
     public UploadVideoAppResponse uploadVideo(MultipartFile file) throws IOException {
         String originalFileName = Objects.requireNonNullElse(FilenameUtils.getName(file.getOriginalFilename()), "");
-        String extension = Objects.requireNonNullElse(FilenameUtils.getExtension(originalFileName), "");
+        String extension = Objects.requireNonNullElse(FilenameUtils.getExtension(originalFileName), "").toLowerCase();
         this.logger.info("영상 업로드 시작 - " + originalFileName);
 
         if (!extension.toLowerCase().matches(EXTENSION_PATTERN)) {

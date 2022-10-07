@@ -30,22 +30,23 @@ export class MessagingService {
   public async processVideo(request: Record<string, unknown>) {
     console.log(request);
 
-    if (String(request.uuid).length < 36 || !request.file) {
+    if (String(request.uuid).length < 36 || !request.fileName) {
       throw new Error('invalid request');
     }
 
     await this.videoService.makeStream(
       String(request.uuid),
-      String(request.file),
+      String(request.fileName),
       10,
       40,
     );
 
     const response = {
       request,
-      result: true,
-      url: 'test',
-      thumbnail: '',
+      streamingUrl: 'test',
+      streamingLength: 10,
+      streamingAspectRatio: 1.5,
+      thumbnailUrl: 'test2',
       certified: true,
     };
 

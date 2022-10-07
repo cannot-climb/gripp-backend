@@ -8,7 +8,7 @@ export class VideoService {
 
   public async makeStream(
     uuid: string,
-    file: string,
+    fileName: string,
     start: number,
     end: number,
   ) {
@@ -19,7 +19,7 @@ export class VideoService {
     const command = `ffmpeg -nostdin -y \\
       -headers $'Authorization: Basic ${basicToken}\\r\\n' \\
       -ss ${start} -to ${end} \\
-      -i ${this.GRIPP_DOWNLOAD_API}/${file} \\
+      -i ${this.GRIPP_DOWNLOAD_API}/${fileName} \\
       -filter_complex "[v]split=2[vt1][vt2];[vt1]scale=720:-2:flags=lanczos,format=yuv420p[vo1];[vt2]scale=480:-2:flags=lanczos,format=yuv420p[vo2]" \\
       -preset fast -crf 20 -sc_threshold 0 \\
       -force_key_frames "expr:gte(t,n_forced*2)" \\

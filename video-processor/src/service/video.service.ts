@@ -16,7 +16,7 @@ export class VideoService {
       `${process.env.GRIPP_ADMIN_NAME}:${process.env.GRIPP_ADMIN_PASSWORD}`,
     ).toString('base64');
     const thumbnailSS = Math.trunc((end - start) / 2);
-    const command = `ffmpeg -nostdin -y \\
+    const command = `ffmpeg -hide_banner -nostdin -y \\
       -headers $'Authorization: Basic ${basicToken}\\r\\n' \\
       -ss ${start} -to ${end} \\
       -i ${this.GRIPP_DOWNLOAD_API}/${fileName} \\

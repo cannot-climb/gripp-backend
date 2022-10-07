@@ -54,7 +54,7 @@ public class VideoApplicationImpl implements VideoApplication {
         String extension = Objects.requireNonNullElse(FilenameUtils.getExtension(originalFileName), "");
         this.logger.info("영상 업로드 시작 - " + originalFileName);
 
-        if (!extension.matches(EXTENSION_PATTERN)) {
+        if (!extension.toLowerCase().matches(EXTENSION_PATTERN)) {
             UploadVideoAppResponse response = new UploadVideoAppResponse();
             response.setSuccess(false);
             response.setMessage("invalid file extension");
@@ -65,7 +65,7 @@ public class VideoApplicationImpl implements VideoApplication {
         try (InputStream inputStream = file.getInputStream()) {
             String mimeType = new Tika().detect(inputStream);
 
-            if (!mimeType.matches(MIME_TYPE_PATTERN)) {
+            if (!mimeType.toLowerCase().matches(MIME_TYPE_PATTERN)) {
                 UploadVideoAppResponse response = new UploadVideoAppResponse();
                 response.setSuccess(false);
                 response.setMessage("invalid video mime type");

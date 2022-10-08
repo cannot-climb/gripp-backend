@@ -15,7 +15,7 @@ export class VideoService {
     const thumbnailSS = Math.trunc((end - start) / 2);
     const wgetCommand = `wget --no-verbose \\
       --user=${process.env.GRIPP_ADMIN_NAME} \\
-      --password=${process.env.GRIPP_ADMIN_PASSWORD} \\
+      --password=${process.env.GRIPP_ADMIN_PASSWORD_RAW} \\
       -O videos/${fileName} \\
       ${this.GRIPP_DOWNLOAD_API}/${fileName}`;
     const ffmpegCommand = `ffmpeg -hide_banner -nostdin -y -loglevel warning \\

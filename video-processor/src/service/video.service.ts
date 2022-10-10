@@ -42,17 +42,23 @@ export class VideoService {
     }
 
     try {
+      console.log(wgetCommand);
+
       const wget = execa.command(wgetCommand, opt);
       wget.stdout?.pipe(process.stdout);
       wget.stderr?.pipe(process.stderr);
 
       await wget;
 
+      console.log(ffmpegCommand);
+
       const ffmpeg = execa.command(ffmpegCommand, opt);
       ffmpeg.stdout?.pipe(process.stdout);
       ffmpeg.stderr?.pipe(process.stderr);
 
       await ffmpeg;
+
+      console.log(`영상 인코딩 완료 - videos/${uuid}`);
     } finally {
       fs.unlink(`videos/${fileName}`, (err) => {
         if (err) {

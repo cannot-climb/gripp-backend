@@ -12,7 +12,7 @@ export class VideoService {
     start: number,
     end: number,
   ) {
-    const thumbnailSS = Math.trunc((end - start) / 2);
+    const thumbnailSS = start;
     const wgetCommand = `wget --no-verbose \\
       --user=${process.env.GRIPP_ADMIN_NAME} \\
       --password=${process.env.GRIPP_ADMIN_PASSWORD_RAW} \\

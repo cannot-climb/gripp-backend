@@ -15,6 +15,19 @@ services:
         max-size: "20m"
         max-file: "3"
     restart: "unless-stopped"
+  video-processor:
+    build: "video-processor"
+    volumes:
+      - video-processor-videos:/video-processor/videos
+    environment:
+      TZ: "Asia/Seoul"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+    restart: "unless-stopped"
 
 volumes:
   gripp-upload:
+  video-processor-videos:

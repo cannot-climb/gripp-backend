@@ -1,7 +1,7 @@
 FROM eclipse-temurin:17 AS gradle
 WORKDIR /gradle
-COPY gradlew build.gradle settings.gradle .
-COPY ./gradle ./gradle
+COPY gradlew build.gradle settings.gradle ./
+COPY gradle/ gradle/
 RUN ["./gradlew", "dependencies", "--no-daemon"]
 COPY . .
 RUN ["./gradlew", "clean", "build", "--no-daemon"]

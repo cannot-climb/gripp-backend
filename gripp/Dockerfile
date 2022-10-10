@@ -10,4 +10,4 @@ FROM eclipse-temurin:17
 EXPOSE 8080
 WORKDIR /gripp
 COPY --from=gradle /gradle/build/libs/*.jar ./gripp.jar
-ENTRYPOINT ["java", "-jar", "gripp.jar"]
+CMD ["java", "-jar", "gripp.jar"]

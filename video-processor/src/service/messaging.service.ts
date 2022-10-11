@@ -37,8 +37,6 @@ export class MessagingService {
     await this.videoService.makeStream(
       String(request.uuid),
       String(request.fileName),
-      0,
-      60,
     );
 
     const response = {

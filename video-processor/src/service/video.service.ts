@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import axios from 'axios';
 import execa from 'execa';
 import fs from 'fs';
 
@@ -6,19 +7,14 @@ import fs from 'fs';
 export class VideoService {
   private readonly GRIPP_DOWNLOAD_API = 'https://gripp.dev.njw.kr/download';
 
-  public async makeStream(
-    uuid: string,
-    fileName: string,
-    start: number,
-    end: number,
-  ) {
-    const opt = { shell: 'bash' };
-
-    if (!fs.existsSync(`videos/${uuid}`)) {
-      fs.mkdirSync(`videos/${uuid}`, { recursive: true });
-    }
-
+  public async makeStream(uuid: string, fileName: string) {
     try {
+      const opt = { shell: 'bash' };
+
+      if (!fs.existsSync(`videos/${uuid}`)) {
+        fs.mkdirSync(`videos/${uuid}`, { recursive: true });
+      }
+
       const wgetCommand = `wget --no-verbose \\
       --user=${process.env.GRIPP_ADMIN_NAME} \\
       --password=${process.env.GRIPP_ADMIN_PASSWORD_RAW} \\
@@ -30,6 +26,21 @@ export class VideoService {
       wget.stderr?.pipe(process.stderr);
       await wget;
 
+      const { data: deepNetworkResult } = await axios.post(
+        'http://gripp-deep.njw.kr/kilterboard/upload',
+        {
+          videoUrl: `${this.GRIPP_DOWNLOAD_API}/${fileName}`,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.GRIPP_DEEP_TOKEN}`,
+          },
+          timeout: 300000,
+        },
+      );
+
+      const start = deepNetworkResult?.startTime || '00:00:00';
+      const end = deepNetworkResult?.endTime || '00:60:00';
       const hlsCommand = `ffmpeg -hide_banner -nostdin -y \\
       -ss ${start} -to ${end} \\
       -i videos/${fileName} \\

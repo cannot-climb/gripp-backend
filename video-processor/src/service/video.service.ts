@@ -40,10 +40,18 @@ export class VideoService {
       );
       console.log(deepNetworkResponse);
 
-      const start = deepNetworkResponse.data?.startTime || '00:00:00';
-      const end = deepNetworkResponse.data?.endTime || '00:60:00';
+      let startTime = deepNetworkResponse.data?.startTime || '00:00:00';
+      let endTime = deepNetworkResponse.data?.endTime || '00:59:59';
+
+      if (startTime > endTime) {
+        [startTime, endTime] = [endTime, startTime];
+      }
+
+      startTime = `${startTime}.000`;
+      endTime = `${endTime}.999`;
+
       const hlsCommand = `ffmpeg -hide_banner -nostdin -y \\
-      -ss ${start} -to ${end} \\
+      -ss ${startTime} -to ${endTime} \\
       -i videos/${fileName} \\
       -filter_complex "[v]split=2[vt1][vt2];[vt1]scale=720:-2,format=yuv420p[vo1];[vt2]scale=480:-2,format=yuv420p[vo2]" \\
       -preset veryfast -crf 20 -sc_threshold 0 \\

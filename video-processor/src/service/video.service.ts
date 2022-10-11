@@ -26,7 +26,7 @@ export class VideoService {
       wget.stderr?.pipe(process.stderr);
       await wget;
 
-      const { data: deepNetworkResult } = await axios.post(
+      const deepNetworkResponse = await axios.post(
         'http://gripp-deep.njw.kr/kilterboard/upload',
         {
           videoUrl: `${this.GRIPP_DOWNLOAD_API}/${fileName}`,
@@ -38,9 +38,10 @@ export class VideoService {
           timeout: 300000,
         },
       );
+      console.log(deepNetworkResponse);
 
-      const start = deepNetworkResult?.startTime || '00:00:00';
-      const end = deepNetworkResult?.endTime || '00:60:00';
+      const start = deepNetworkResponse.data?.startTime || '00:00:00';
+      const end = deepNetworkResponse.data?.endTime || '00:60:00';
       const hlsCommand = `ffmpeg -hide_banner -nostdin -y \\
       -ss ${start} -to ${end} \\
       -i videos/${fileName} \\

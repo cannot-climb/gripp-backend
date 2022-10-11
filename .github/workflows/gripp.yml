@@ -37,6 +37,11 @@ jobs:
           envkey_GRIPP_ADMIN_NAME: ${{ secrets.GRIPP_ADMIN_NAME }}
           envkey_GRIPP_ADMIN_PASSWORD_RAW: ${{ secrets.GRIPP_ADMIN_PASSWORD_RAW }}
           envkey_GRIPP_DEEP_TOKEN: ${{ secrets.GRIPP_DEEP_TOKEN }}
+          envkey_GRIPP_AWS_ACCESS_KEY: ${{ secrets.GRIPP_AWS_ACCESS_KEY }}
+          envkey_GRIPP_AWS_SECRET_KEY: ${{ secrets.GRIPP_AWS_SECRET_KEY }}
+          envkey_GRIPP_AWS_REGION: ${{ secrets.GRIPP_AWS_REGION }}
+          envkey_GRIPP_AWS_S3_ENDPOINT: ${{ secrets.GRIPP_AWS_S3_ENDPOINT }}
+          envkey_GRIPP_AWS_S3_BUCKET: ${{ secrets.GRIPP_AWS_S3_BUCKET }}
           directory: video-processor
           file_name: .env
           fail_on_empty: true

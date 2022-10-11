@@ -1,11 +1,24 @@
 import { Injectable } from '@nestjs/common';
+import AWS from 'aws-sdk';
 import axios from 'axios';
 import execa from 'execa';
 import fs from 'fs';
+import mime from 'mime-types';
+import path from 'path';
 
 @Injectable()
 export class VideoService {
   private readonly GRIPP_DOWNLOAD_API = 'https://gripp.dev.njw.kr/download';
+  private readonly s3 = new AWS.S3({
+    credentials: {
+      accessKeyId: `${process.env.GRIPP_AWS_ACCESS_KEY}`,
+      secretAccessKey: `${process.env.GRIPP_AWS_SECRET_KEY}`,
+    },
+    endpoint: `${process.env.GRIPP_AWS_S3_ENDPOINT}`,
+    region: `${process.env.GRIPP_AWS_REGION}`,
+    s3ForcePathStyle: true,
+    signatureVersion: 'v4',
+  });
 
   public async makeStream(uuid: string, fileName: string) {
     try {
@@ -72,6 +85,7 @@ export class VideoService {
       -master_pl_name master.m3u8 \\
       -hls_segment_filename videos/${uuid}/stream_%v_%03d.ts \\
       videos/${uuid}/stream_%v.m3u8`;
+      console.log(hlsCommand);
 
       const hls = execa.command(hlsCommand, opt);
       hls.stdout?.pipe(process.stdout);
@@ -94,19 +108,95 @@ export class VideoService {
       -frames:v 1 \\
       -f image2 -update 1 \\
       videos/${uuid}/thumbnail.png`;
+      console.log(thumbnailCommand);
 
       const thumbnail = execa.command(thumbnailCommand, opt);
       thumbnail.stdout?.pipe(process.stdout);
       thumbnail.stderr?.pipe(process.stderr);
       await thumbnail;
 
-      console.log(`영상 인코딩 완료 - ${uuid}/master.m3u8`);
+      console.log(`영상 인코딩 완료 - videos/${uuid}`);
+
+      await this.uploadFolder(`videos/${uuid}`);
+    } catch (e) {
+      throw e;
     } finally {
       fs.unlink(`videos/${fileName}`, (err) => {
         if (err) {
           console.error(err);
         }
       });
+
+      fs.rm(
+        `videos/${uuid}`,
+        {
+          force: true,
+          recursive: true,
+          maxRetries: 10,
+        },
+        (err) => {
+          if (err) {
+            console.error(err);
+          }
+        },
+      );
     }
+  }
+
+  private async uploadFolder(folder: string) {
+    const results: string[] = [];
+    const files = fs.readdirSync(folder);
+
+    if (!files || files.length === 0) {
+      return [];
+    }
+
+    for (const fileName of files) {
+      const filePath = path.join(folder, fileName);
+
+      if (fs.lstatSync(filePath).isDirectory()) {
+        continue;
+      }
+
+      const data = fs.readFileSync(filePath);
+      const url = await (() => {
+        return new Promise<string>((resolve, reject) => {
+          this.s3.upload(
+            {
+              Bucket: `${process.env.GRIPP_AWS_S3_BUCKET}`,
+              Key: filePath,
+              Body: data,
+              ContentType: mime.lookup(filePath) || undefined,
+            },
+            (err, data) => {
+              if (err) {
+                reject(err);
+                return;
+              }
+
+              const url = this.hackS3UrlForOracleCloud(data.Location);
+              resolve(url);
+              console.log(`업로드 완료 - ${url}`);
+            },
+          );
+        });
+      })();
+
+      results.push(url);
+    }
+
+    return results;
+  }
+
+  private hackS3UrlForOracleCloud(fileUrl: string) {
+    const found = fileUrl.match(
+      /^.*:\/\/([^.]+)\.compat\.objectstorage\.([^.]+)\.oraclecloud\.com\/([^/]+)\/(.+)$/i,
+    );
+
+    if (!found) {
+      return fileUrl;
+    }
+
+    return `https://objectstorage.${found[2]}.oraclecloud.com/n/${found[1]}/b/${found[3]}/o/${found[4]}`;
   }
 }

@@ -38,7 +38,14 @@ export class VideoService {
           timeout: 300000,
         },
       );
-      console.log(deepNetworkResponse);
+
+      console.log({
+        status: deepNetworkResponse.status,
+        statusText: deepNetworkResponse.statusText,
+        headers: deepNetworkResponse.headers,
+        config: deepNetworkResponse.config,
+        data: deepNetworkResponse.data,
+      });
 
       let startTime = deepNetworkResponse.data?.startTime || '00:00:00';
       let endTime = deepNetworkResponse.data?.endTime || '00:59:59';

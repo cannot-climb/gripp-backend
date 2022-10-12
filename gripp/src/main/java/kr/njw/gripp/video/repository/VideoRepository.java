@@ -10,6 +10,8 @@ import javax.persistence.LockModeType;
 import java.util.Optional;
 
 public interface VideoRepository extends JpaRepository<Video, Long> {
+    Optional<Video> findByUuid(String uuid);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select v from Video v where v.uuid = :uuid")
     Optional<Video> findByUuidForUpdate(@Param("uuid") String uuid);

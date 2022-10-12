@@ -2,6 +2,7 @@ package kr.njw.gripp.video.application;
 
 import kr.njw.gripp.global.config.GrippConfig;
 import kr.njw.gripp.global.config.RabbitConfig;
+import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.application.dto.UploadVideoAppResponse;
 import kr.njw.gripp.video.entity.Video;
 import kr.njw.gripp.video.entity.vo.VideoStatus;
@@ -134,6 +135,27 @@ public class VideoApplicationImpl implements VideoApplication {
         UploadVideoAppResponse response = new UploadVideoAppResponse();
         response.setSuccess(true);
         response.setUuid(uuid);
+        return response;
+    }
+
+    public FindVideoAppResponse findVideo(String uuid) {
+        Optional<Video> video = this.videoRepository.findByUuid(uuid);
+
+        if (video.isEmpty()) {
+            FindVideoAppResponse response = new FindVideoAppResponse();
+            response.setSuccess(false);
+            this.logger.warn("영상이 존재하지 않습니다 - " + uuid);
+            return response;
+        }
+
+        FindVideoAppResponse response = new FindVideoAppResponse();
+        response.setSuccess(true);
+        response.setUuid(video.get().getUuid());
+        response.setStreamingUrl(video.get().getStreamingUrl());
+        response.setStreamingLength(video.get().getStreamingLength());
+        response.setStreamingAspectRatio(video.get().getStreamingAspectRatio());
+        response.setThumbnailUrl(video.get().getThumbnailUrl());
+        response.setStatus(video.get().getStatus());
         return response;
     }
 

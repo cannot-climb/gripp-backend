@@ -10,15 +10,15 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.njw.gripp.global.dto.ErrorResponse;
 import kr.njw.gripp.video.application.VideoApplication;
+import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.application.dto.UploadVideoAppResponse;
+import kr.njw.gripp.video.controller.dto.FindVideoResponse;
 import kr.njw.gripp.video.controller.dto.UploadVideoResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -72,6 +72,38 @@ public class VideoController {
 
         UploadVideoResponse response = new UploadVideoResponse();
         response.setVideoId(appResponse.getUuid());
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "영상정보", description = """
+            영상정보 API""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 완료",
+                    content = @Content(schema = @Schema(implementation = FindVideoResponse.class))),
+            @ApiResponse(responseCode = "400", description = "조회 실패 (Bad Request)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "조회 실패 (Unauthorized)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "조회 실패 (Not Found) / ex: 영상이 존재하지 않는 경우",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    @GetMapping("/{videoId}")
+    public ResponseEntity<?> findVideo(@PathVariable("videoId") String videoId) {
+        FindVideoAppResponse appResponse = this.videoApplication.findVideo(videoId);
+
+        if (!appResponse.isSuccess()) {
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setErrors(List.of("fail to find video"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        FindVideoResponse response = new FindVideoResponse();
+        response.setVideoId(appResponse.getUuid());
+        response.setStreamingUrl(appResponse.getStreamingUrl());
+        response.setStreamingLength(appResponse.getStreamingLength());
+        response.setStreamingAspectRatio(appResponse.getStreamingAspectRatio());
+        response.setThumbnailUrl(appResponse.getThumbnailUrl());
+        response.setStatus(appResponse.getStatus());
         return ResponseEntity.ok(response);
     }
 }

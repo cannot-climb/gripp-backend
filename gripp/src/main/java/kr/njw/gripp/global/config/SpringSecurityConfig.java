@@ -51,7 +51,7 @@ public class SpringSecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain downloadFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain downloadSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .requestMatchers()
                 .antMatchers("/download/**");

@@ -88,7 +88,9 @@ public class VideoController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     @GetMapping("/{videoId}")
-    public ResponseEntity<?> findVideo(@PathVariable("videoId") String videoId) {
+    public ResponseEntity<?> findVideo(
+            @Parameter(description = "영상 아이디", example = "7dc53df5-703e-49b3-8670-b1c468f47f1f")
+            @PathVariable("videoId") String videoId) {
         FindVideoAppResponse appResponse = this.videoApplication.findVideo(videoId);
 
         if (!appResponse.isSuccess()) {

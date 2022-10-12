@@ -5,6 +5,7 @@ import execa from 'execa';
 import fs from 'fs';
 import mime from 'mime-types';
 import path from 'path';
+import { MakeStreamResponse } from './dto/make-stream.dto';
 
 @Injectable()
 export class VideoService {
@@ -26,7 +27,10 @@ export class VideoService {
     signatureVersion: 'v4',
   });
 
-  public async makeStream(uuid: string, fileName: string) {
+  public async makeStream(
+    uuid: string,
+    fileName: string,
+  ): Promise<MakeStreamResponse> {
     try {
       const opt = { shell: 'bash' };
 
@@ -123,7 +127,21 @@ export class VideoService {
 
       console.log(`영상 인코딩 완료 - videos/${uuid}`);
 
-      await this.uploadFolder(`videos/${uuid}`);
+      const uploadedUrls = await this.uploadFolder(`videos/${uuid}`);
+
+      return {
+        streamingUrl:
+          uploadedUrls.find((url) => url.endsWith(this.HLS_MASTER_FILE_NAME)) ||
+          '',
+        streamingLength: Math.ceil(Number(ffprobeResult?.format?.duration)),
+        streamingAspectRatio:
+          ffprobeResult?.streams[0]?.height / ffprobeResult?.streams[0]?.width,
+        thumbnailUrl:
+          uploadedUrls.find((url) =>
+            url.endsWith(this.HLS_THUMBNAIL_FILE_NAME),
+          ) || '',
+        certified: Boolean(deepNetworkResponse.data?.success),
+      };
     } catch (e) {
       throw e;
     } finally {

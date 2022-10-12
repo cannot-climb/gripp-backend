@@ -41,14 +41,23 @@ export class MessagingService {
 
     const response = {
       request,
-      streamingUrl: 'test',
-      streamingLength: 10,
-      streamingAspectRatio: 1.5,
-      thumbnailUrl: 'test2',
-      certified: true,
+      streamingUrl: result.streamingUrl,
+      streamingLength: result.streamingLength,
+      streamingAspectRatio: result.streamingAspectRatio,
+      thumbnailUrl: result.thumbnailUrl,
+      certified: result.certified,
     };
+    console.log(response);
+
+    if (
+      !response.streamingUrl ||
+      !response.streamingLength ||
+      !response.streamingAspectRatio ||
+      !response.thumbnailUrl
+    ) {
+      throw new Error('invalid response');
+    }
 
     this.amqpConnection.publish('', 'video-processor-return', response);
-    console.log(response);
   }
 }

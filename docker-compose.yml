@@ -17,8 +17,6 @@ services:
     restart: "unless-stopped"
   video-processor:
     build: "video-processor"
-    volumes:
-      - video-processor-videos:/video-processor/videos
     environment:
       TZ: "Asia/Seoul"
     logging:
@@ -30,4 +28,3 @@ services:
 
 volumes:
   gripp-upload:
-  video-processor-videos:

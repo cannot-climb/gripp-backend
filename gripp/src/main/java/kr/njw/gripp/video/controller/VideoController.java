@@ -75,8 +75,8 @@ public class VideoController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "영상정보", description = """
-            영상정보 API""")
+    @Operation(summary = "영상 정보", description = """
+            영상 정보 API""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 완료",
                     content = @Content(schema = @Schema(implementation = FindVideoResponse.class))),

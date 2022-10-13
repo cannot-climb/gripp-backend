@@ -15,7 +15,7 @@ export class VideoService {
   private readonly HLS_THUMBNAIL_FILE_NAME = 'thumbnail.png';
   private readonly GRIPP_DOWNLOAD_API = 'https://gripp.dev.njw.kr/download';
   private readonly GRIPP_DEEP_API =
-    'http://gripp-deep.njw.kr/kilterboard/upload';
+    'http://gripp.wonbeomjang.kr/kilterboard/upload';
   private readonly s3 = new AWS.S3({
     credentials: {
       accessKeyId: `${process.env.GRIPP_AWS_ACCESS_KEY}`,

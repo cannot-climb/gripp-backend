@@ -1,7 +1,7 @@
 # gripp-backend
 
-[![Uptime Robot status](https://img.shields.io/uptimerobot/status/m792790459-c909f25e589cff2894e50ac7)](https://stats.uptimerobot.com/YRoN9sDMOz/792790459)
-[![Uptime Robot ratio (30 days)](https://img.shields.io/uptimerobot/ratio/m792790459-c909f25e589cff2894e50ac7)](https://stats.uptimerobot.com/YRoN9sDMOz/792790459)
+[![Uptime Robot status](https://img.shields.io/uptimerobot/status/m792790459-ad938464b9b8cc8e4eb6eb30)](https://stats.uptimerobot.com/YRoN9sDMOz)
+[![Uptime Robot ratio (30 days)](https://img.shields.io/uptimerobot/ratio/m792790459-ad938464b9b8cc8e4eb6eb30)](https://stats.uptimerobot.com/YRoN9sDMOz)
 
 ## 🔥 API Draft
 

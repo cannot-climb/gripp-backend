@@ -71,14 +71,11 @@ export class VideoService {
       });
 
       let startTime = deepNetworkResponse.data?.startTime || '00:00:00';
-      let endTime = deepNetworkResponse.data?.endTime || '00:59:59';
+      let endTime = deepNetworkResponse.data?.endTime || '00:60:00';
 
       if (startTime > endTime) {
         [startTime, endTime] = [endTime, startTime];
       }
-
-      startTime = `${startTime}.000`;
-      endTime = `${endTime}.999`;
 
       const hlsCommand = `ffmpeg -hide_banner -nostdin -y \\
       -ss ${startTime} -to ${endTime} \\

@@ -12,3 +12,7 @@
 **https://gripp.dev.njw.kr/swagger-ui**
 
 - require an admin username and password
+
+## 🏗️ ERD
+
+![ERD](docs/erd.png)

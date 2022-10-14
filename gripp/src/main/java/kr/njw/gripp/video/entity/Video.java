@@ -19,15 +19,15 @@ public class Video {
     private Long id;
     @Column(length = 36, nullable = false, unique = true)
     private String uuid;
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(length = 500, nullable = false)
     private String streamingUrl;
     @Column(nullable = false)
     private int streamingLength;
     @Column(nullable = false)
     private double streamingAspectRatio;
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(length = 500, nullable = false)
     private String thumbnailUrl;
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(length = 500, nullable = false)
     private String originalFileName;
     @Column(length = 10, nullable = false)
     private String originalFileExtension;

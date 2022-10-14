@@ -32,8 +32,8 @@ CREATE TABLE `article` (
   `favorite_count` bigint NOT NULL DEFAULT '0',
   `register_date_time` datetime NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `article_video_id_UNIQUE` (`video_id`),
   KEY `article_user_id_idx` (`user_id`),
-  KEY `article_video_id_idx` (`video_id`),
   CONSTRAINT `article_user_id_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `article_video_id_FK` FOREIGN KEY (`video_id`) REFERENCES `video` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

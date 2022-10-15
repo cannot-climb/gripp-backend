@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.LinkedList;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -67,6 +66,7 @@ public class UserApplicationImpl implements UserApplication {
             Queue<FindUserAppResponse> defaultBoardTopQueue = new LinkedList<>();
             AtomicLong defaultBoardBottomRemainSize = new AtomicLong(LEADER_BOARD_DEFAULT_BOARD_SIDE_SIZE);
 
+            // 유저 목록을 순회하며 각 리더보드별로 포함해야 되는 유저만 추출
             users.takeWhile(__ -> response.getTopBoard().size() < LEADER_BOARD_TOP_BOARD_SIZE
                     || defaultBoardBottomRemainSize.get() > 0).forEach(aUser -> {
                 long rank;
@@ -106,6 +106,7 @@ public class UserApplicationImpl implements UserApplication {
                         }
                     }
 
+                    // 메모리 초과 방지
                     this.entityManager.detach(aUser);
                 }
             });
@@ -115,8 +116,7 @@ public class UserApplicationImpl implements UserApplication {
     }
 
     private long getRank(User user) {
-        return this.userRepository.countByScoreGreaterThan(Objects.requireNonNullElse(user.getScore(), 0))
-                + 1;
+        return this.userRepository.countByScoreGreaterThan(user.getScore()) + 1;
     }
 
     private int getPercentile(long rank) {

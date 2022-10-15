@@ -17,8 +17,9 @@ public class AccountToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
     private Account account;
     @Column(length = 100, nullable = false, unique = true)
     private String refreshToken;

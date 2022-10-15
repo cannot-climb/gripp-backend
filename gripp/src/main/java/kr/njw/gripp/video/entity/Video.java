@@ -38,6 +38,10 @@ public class Video {
 
     public void startStreaming(String streamingUrl, int streamingLength, double streamingAspectRatio,
                                String thumbnailUrl, boolean certified) {
+        if (this.status != null && this.status != VideoStatus.PREPROCESSING) {
+            throw new RuntimeException("already streaming");
+        }
+
         this.streamingUrl = streamingUrl;
         this.streamingLength = streamingLength;
         this.streamingAspectRatio = streamingAspectRatio;

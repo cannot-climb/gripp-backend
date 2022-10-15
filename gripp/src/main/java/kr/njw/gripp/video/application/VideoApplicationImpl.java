@@ -1,7 +1,11 @@
 package kr.njw.gripp.video.application;
 
+import kr.njw.gripp.article.entity.Article;
+import kr.njw.gripp.article.repository.ArticleRepository;
 import kr.njw.gripp.global.config.GrippConfig;
 import kr.njw.gripp.global.config.RabbitConfig;
+import kr.njw.gripp.user.entity.User;
+import kr.njw.gripp.user.repository.UserRepository;
 import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.application.dto.UploadVideoAppResponse;
 import kr.njw.gripp.video.entity.Video;
@@ -44,7 +48,8 @@ public class VideoApplicationImpl implements VideoApplication {
     private static final String EXTENSION_PATTERN = "mp4|mov";
     private static final String MIME_TYPE_PATTERN = "video/mp4|video/quicktime";
     private static final long MIN_DURATION_IN_SECONDS = 5;
-
+    private final ArticleRepository articleRepository;
+    private final UserRepository userRepository;
     private final VideoRepository videoRepository;
     private final AmqpTemplate amqpTemplate;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -163,16 +168,32 @@ public class VideoApplicationImpl implements VideoApplication {
     @RabbitListener(queues = RabbitConfig.VIDEO_PROCESSOR_RETURN_QUEUE_KEY)
     public void onReturnVideoProcessor(VideoProcessorResponse response) throws IOException {
         this.logger.info("영상 처리 응답 수신 - " + response);
-        Optional<Video> video = this.videoRepository.findByUuidForUpdate(response.getRequest().getUuid());
+        Video video = this.videoRepository.findByUuidForUpdate(response.getRequest().getUuid()).orElse(null);
 
-        if (video.isEmpty()) {
+        if (video == null) {
             this.logger.error("영상이 존재하지 않습니다 - " + response);
             throw new RuntimeException("영상이 존재하지 않습니다 - " + response);
         }
 
-        video.get().startStreaming(response.getStreamingUrl(), response.getStreamingLength(),
+        video.startStreaming(response.getStreamingUrl(), response.getStreamingLength(),
                 response.getStreamingAspectRatio(), response.getThumbnailUrl(), response.isCertified());
-        this.videoRepository.save(video.get());
+
+        if (video.getStatus() == VideoStatus.CERTIFIED) {
+            Article existedArticle = this.articleRepository.findByVideoIdForUpdate(video.getId()).orElse(null);
+
+            if (existedArticle != null) {
+                // 영상이 PREPROCESSING 상태에서 먼저 게시글로 등록되고 이후에 CERTIFIED 판정을 받은 경우
+                User user = existedArticle.getUser();
+
+                if (user != null) {
+                    // 유저에게 작성했던 게시글의 CERTIFIED 판정 알림
+                    user.noticeNewCertified(existedArticle);
+                    this.userRepository.save(user);
+                }
+            }
+        }
+
+        this.videoRepository.save(video);
 
         Path dest = Paths.get(GrippConfig.FILE_UPLOAD_PATH, response.getRequest().getFileName());
         Files.deleteIfExists(dest);

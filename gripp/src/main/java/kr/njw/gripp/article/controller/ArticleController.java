@@ -37,7 +37,14 @@ public class ArticleController {
     private final ArticleApplication articleApplication;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Operation(summary = "게시물 등록", description = "게시물 등록 API")
+    @Operation(summary = "게시물 등록", description = """
+            게시물 등록 API
+
+            먼저 영상 업로드 API 호출 후 게시물 등록 API를 호출해야 됨\040\040
+            영상 인코딩이 끝나기 전이라도 바로 게시물 등록 API를 호출하면 됨
+
+            게시물 등록이 완료되면 즉시 게시물 검색 API 등에서 게시물은 조회 가능\040\040
+            하지만 영상 인코딩 완료 전까지 영상의 스트리밍 주소, 등반 성공 여부 등은 제공되지 않음""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "등록 완료",
                     content = @Content(schema = @Schema(implementation = WriteArticleResponse.class))),

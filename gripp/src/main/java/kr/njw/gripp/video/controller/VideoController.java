@@ -37,9 +37,8 @@ public class VideoController {
 
             multipart/form-data 형식으로 업로드
 
-            게시물 등록 전에 단순히 파일만 업로드하는 API임\040\040
-            영상 처리 및 게시물 등록은 나중에 이루어짐\040\040
-            업로드가 완료되면 영상 아이디를 받고 그 값을 게시물 등록 API에 보내면 됨
+            게시물 등록 전에 파일을 업로드하고 영상 인코딩을 시작하는 API임\040\040
+            영상 업로드 API 호출 후 추가로 게시물 등록 API를 호출해야 됨\040\040
 
             파일 업로드가 끝나도 완료 시점에 엑세스 토큰이 만료된 상태이면 HTTP 401 에러가 반환됨\040\040
             따라서 업로드가 길어지면 업로드 중간에 토큰이 만료되어 HTTP 401 에러가 반환될 수 있음\040\040
@@ -76,7 +75,9 @@ public class VideoController {
     }
 
     @Operation(summary = "영상 정보", description = """
-            영상 정보 API""")
+            영상 정보 API
+
+            현재 앱에서는 사용할 필요가 없지만 테스트 편의를 위해 제공""")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 완료",
                     content = @Content(schema = @Schema(implementation = FindVideoResponse.class))),

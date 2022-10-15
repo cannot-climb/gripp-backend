@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "user")
@@ -16,6 +18,9 @@ import java.time.LocalDateTime;
 @Builder
 @ToString
 public class User {
+    public static final int ARTICLE_MAX_COUNT_FOR_COMPUTE_SCORE = 10;
+    private static final int[] SCORE_WEIGHTS = {200, 200, 200, 100, 100, 50, 50, 50, 25, 25};
+
     @Transient
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -37,18 +42,25 @@ public class User {
         return (this.score + 50) / 100;
     }
 
-    public void noticeNewArticle(Article article) {
-        if (article != null) {
-            this.articleCount++;
-            this.logger.info("새로운 게시물 발생 - " + this.username + ", " + article);
-        }
+    public void incrementArticleCount() {
+        this.articleCount++;
     }
 
-    public void noticeNewCertified(Article article) {
-        if (article != null) {
-            // TODO: score 증가
-            this.articleCertifiedCount++;
-            this.logger.info("새로운 등반 성공 발생 - " + this.username + ", " + article);
+    public void incrementArticleCertifiedCount() {
+        this.articleCertifiedCount++;
+    }
+
+    public void submitScore(Collection<Article> bestArticlesForComputeScore) {
+        List<Article> articles = bestArticlesForComputeScore.stream()
+                .filter(article -> article.getVideo() != null && article.getVideo().isCertified())
+                .sorted((a, b) -> b.getLevel() - a.getLevel()).toList();
+
+        this.score = 0;
+
+        for (int i = 0; i < Math.min(articles.size(), ARTICLE_MAX_COUNT_FOR_COMPUTE_SCORE); i++) {
+            this.score += articles.get(i).getLevel() * SCORE_WEIGHTS[i];
         }
+
+        this.score /= 10;
     }
 }

@@ -8,8 +8,8 @@ import kr.njw.gripp.article.repository.ArticleFavoriteRepository;
 import kr.njw.gripp.article.repository.ArticleRepository;
 import kr.njw.gripp.user.entity.User;
 import kr.njw.gripp.user.repository.UserRepository;
+import kr.njw.gripp.user.service.UserService;
 import kr.njw.gripp.video.entity.Video;
-import kr.njw.gripp.video.entity.vo.VideoStatus;
 import kr.njw.gripp.video.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Service
 public class ArticleApplicationImpl implements ArticleApplication {
+    private final UserService userService;
     private final ArticleRepository articleRepository;
     private final ArticleFavoriteRepository articleFavoriteRepository;
     private final UserRepository userRepository;
@@ -64,14 +65,13 @@ public class ArticleApplicationImpl implements ArticleApplication {
                 .build();
 
         this.articleRepository.saveAndFlush(article);
-        user.noticeNewArticle(article);
+        this.userService.noticeNewArticle(user);
 
-        if (video.getStatus() == VideoStatus.CERTIFIED) {
+        if (video.isCertified()) {
             // 영상이 CERTIFIED 판정을 먼저 받은 다음에 게시글을 등록한 경우
-            user.noticeNewCertified(article);
+            this.userService.noticeNewCertified(user);
         }
 
-        this.userRepository.save(user);
         response.setStatus(WriteArticleAppResponseStatus.SUCCESS);
         response.setId(article.getId());
 

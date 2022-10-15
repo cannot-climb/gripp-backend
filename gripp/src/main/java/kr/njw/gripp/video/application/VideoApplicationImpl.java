@@ -5,7 +5,7 @@ import kr.njw.gripp.article.repository.ArticleRepository;
 import kr.njw.gripp.global.config.GrippConfig;
 import kr.njw.gripp.global.config.RabbitConfig;
 import kr.njw.gripp.user.entity.User;
-import kr.njw.gripp.user.repository.UserRepository;
+import kr.njw.gripp.user.service.UserService;
 import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.application.dto.UploadVideoAppResponse;
 import kr.njw.gripp.video.entity.Video;
@@ -48,8 +48,9 @@ public class VideoApplicationImpl implements VideoApplication {
     private static final String EXTENSION_PATTERN = "mp4|mov";
     private static final String MIME_TYPE_PATTERN = "video/mp4|video/quicktime";
     private static final long MIN_DURATION_IN_SECONDS = 5;
+
+    private final UserService userService;
     private final ArticleRepository articleRepository;
-    private final UserRepository userRepository;
     private final VideoRepository videoRepository;
     private final AmqpTemplate amqpTemplate;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -178,7 +179,7 @@ public class VideoApplicationImpl implements VideoApplication {
         video.startStreaming(response.getStreamingUrl(), response.getStreamingLength(),
                 response.getStreamingAspectRatio(), response.getThumbnailUrl(), response.isCertified());
 
-        if (video.getStatus() == VideoStatus.CERTIFIED) {
+        if (video.isCertified()) {
             Article existedArticle = this.articleRepository.findByVideoIdForUpdate(video.getId()).orElse(null);
 
             if (existedArticle != null) {
@@ -187,8 +188,7 @@ public class VideoApplicationImpl implements VideoApplication {
 
                 if (user != null) {
                     // 유저에게 작성했던 게시글의 CERTIFIED 판정 알림
-                    user.noticeNewCertified(existedArticle);
-                    this.userRepository.save(user);
+                    this.userService.noticeNewCertified(user);
                 }
             }
         }

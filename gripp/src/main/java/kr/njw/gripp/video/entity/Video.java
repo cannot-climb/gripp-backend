@@ -48,4 +48,8 @@ public class Video {
         this.thumbnailUrl = thumbnailUrl;
         this.status = certified ? VideoStatus.CERTIFIED : VideoStatus.NO_CERTIFIED;
     }
+
+    public boolean isCertified() {
+        return this.status == VideoStatus.CERTIFIED;
+    }
 }

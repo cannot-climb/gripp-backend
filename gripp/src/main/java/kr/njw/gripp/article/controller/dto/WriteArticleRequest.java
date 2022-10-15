@@ -3,10 +3,7 @@ package kr.njw.gripp.article.controller.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 
 @Data
 public class WriteArticleRequest {
@@ -25,12 +22,14 @@ public class WriteArticleRequest {
     private String description;
 
     @Schema(description = "난이도 (0 이상 19 이하)", example = "3")
+    @NotNull(message = "must not be null")
     @Min(value = 0, message = "must be greater than or equal to 0")
     @Max(value = 19, message = "must be less than or equal to 19")
-    private int level;
+    private Integer level;
 
     @Schema(description = "벽각도 (0 이상 90 이하)", example = "45")
+    @NotNull(message = "must not be null")
     @Min(value = 0, message = "must be greater than or equal to 0")
     @Max(value = 90, message = "must be less than or equal to 90")
-    private int angle;
+    private Integer angle;
 }

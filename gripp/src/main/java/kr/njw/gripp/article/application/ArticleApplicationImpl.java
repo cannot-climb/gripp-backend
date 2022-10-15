@@ -33,7 +33,7 @@ public class ArticleApplicationImpl implements ArticleApplication {
     @Transactional
     public WriteArticleAppResponse write(WriteArticleAppRequest request) {
         WriteArticleAppResponse response = new WriteArticleAppResponse();
-        Video video = this.videoRepository.findByUuidForUpdate(request.getVideoUuid()).orElse(null);
+        Video video = this.videoRepository.findByUuidWithReadLock(request.getVideoUuid()).orElse(null);
         User user = this.userRepository.findByUsernameForUpdate(request.getUsername()).orElse(null);
 
         if (video == null) {

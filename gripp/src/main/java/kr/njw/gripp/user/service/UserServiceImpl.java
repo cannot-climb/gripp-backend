@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService {
             return;
         }
 
-        List<Article> articles = this.articleRepository.findTopForUpdate(user.getId(), VideoStatus.CERTIFIED,
+        List<Article> articles = this.articleRepository.findTopWithReadLock(user.getId(), VideoStatus.CERTIFIED,
                 Pageable.ofSize(User.ARTICLE_MAX_COUNT_FOR_COMPUTE_SCORE));
 
         user.incrementArticleCertifiedCount();

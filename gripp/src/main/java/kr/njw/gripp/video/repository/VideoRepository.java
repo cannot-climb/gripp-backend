@@ -15,4 +15,8 @@ public interface VideoRepository extends JpaRepository<Video, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select v from Video v where v.uuid = :uuid")
     Optional<Video> findByUuidForUpdate(@Param("uuid") String uuid);
+
+    @Lock(LockModeType.PESSIMISTIC_READ)
+    @Query("select v from Video v where v.uuid = :uuid")
+    Optional<Video> findByUuidWithReadLock(@Param("uuid") String uuid);
 }

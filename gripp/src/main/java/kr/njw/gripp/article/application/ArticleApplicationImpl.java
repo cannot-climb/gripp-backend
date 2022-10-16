@@ -4,9 +4,13 @@ import kr.njw.gripp.article.application.dto.*;
 import kr.njw.gripp.article.entity.Article;
 import kr.njw.gripp.article.repository.ArticleFavoriteRepository;
 import kr.njw.gripp.article.repository.ArticleRepository;
+import kr.njw.gripp.user.application.UserApplication;
+import kr.njw.gripp.user.application.dto.FindUserAppResponse;
 import kr.njw.gripp.user.entity.User;
 import kr.njw.gripp.user.repository.UserRepository;
 import kr.njw.gripp.user.service.UserService;
+import kr.njw.gripp.video.application.VideoApplication;
+import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.entity.Video;
 import kr.njw.gripp.video.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,13 +24,62 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Service
 public class ArticleApplicationImpl implements ArticleApplication {
+    private final UserApplication userApplication;
+    private final VideoApplication videoApplication;
     private final UserService userService;
     private final ArticleRepository articleRepository;
     private final ArticleFavoriteRepository articleFavoriteRepository;
     private final UserRepository userRepository;
     private final VideoRepository videoRepository;
-
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Transactional
+    public FindArticleAppResponse find(FindArticleAppRequest request) {
+        FindArticleAppResponse response = new FindArticleAppResponse();
+        Article article = this.articleRepository.findById(request.getArticleId()).orElse(null);
+
+        if (article == null) {
+            response.setStatus(FindArticleAppResponseStatus.NO_ARTICLE);
+            this.logger.warn("게시물이 없습니다 - " + request);
+            return response;
+        }
+
+        FindUserAppResponse findUserAppResponse = this.userApplication.findUser(article.getUser().getUsername());
+        FindVideoAppResponse findVideoAppResponse = this.videoApplication.findVideo(article.getVideo().getUuid());
+
+        if (!findUserAppResponse.isSuccess()) {
+            response.setStatus(FindArticleAppResponseStatus.NO_ARTICLE);
+            this.logger.error("게시물에 매칭된 유저가 없습니다 - " + findUserAppResponse);
+            return response;
+        }
+
+        if (!findVideoAppResponse.isSuccess()) {
+            response.setStatus(FindArticleAppResponseStatus.NO_ARTICLE);
+            this.logger.error("게시물에 매칭된 영상이 없습니다 - " + findVideoAppResponse);
+            return response;
+        }
+
+        if (!request.getUsernameRequestedBy().equals(findUserAppResponse.getUsername().orElse(null))) {
+            this.articleRepository.addViewCountById(article.getId());
+            article = this.articleRepository.findById(request.getArticleId()).orElseThrow();
+            this.logger.info("게시물 조회수 증가 - " + request);
+        }
+
+        response.setStatus(FindArticleAppResponseStatus.SUCCESS);
+        response.setId(article.getId());
+        response.setUser(findUserAppResponse);
+        response.setVideo(findVideoAppResponse);
+        response.setTitle(article.getTitle());
+        response.setDescription(article.getDescription());
+        response.setLevel(article.getLevel());
+        response.setAngle(article.getAngle());
+        response.setViewCount(article.getViewCount());
+        response.setFavoriteCount(article.getFavoriteCount());
+        response.setRegisterDateTime(article.getRegisterDateTime());
+        response.setFavorite(this.articleFavoriteRepository.existsByArticleIdAndUserId(
+                article.getId(), article.getUser().getId()));
+        return response;
+    }
 
     @Transactional
     public WriteArticleAppResponse write(WriteArticleAppRequest request) {

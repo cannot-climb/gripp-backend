@@ -12,9 +12,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.njw.gripp.article.application.ArticleApplication;
 import kr.njw.gripp.article.application.dto.*;
 import kr.njw.gripp.article.controller.dto.DeleteArticleResponse;
+import kr.njw.gripp.article.controller.dto.FindArticleResponse;
 import kr.njw.gripp.article.controller.dto.WriteArticleRequest;
 import kr.njw.gripp.article.controller.dto.WriteArticleResponse;
 import kr.njw.gripp.global.dto.ErrorResponse;
+import kr.njw.gripp.user.controller.UserController;
+import kr.njw.gripp.video.controller.VideoController;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +37,58 @@ import java.util.List;
 public class ArticleController {
     private final ArticleApplication articleApplication;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Operation(summary = "게시물 조회", description = """
+            게시물 조회 API
+
+            조회 시 게시물의 조회수 증가 (단, 자신의 게시물을 조회한 경우는 제외)""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 완료",
+                    content = @Content(schema = @Schema(implementation = FindArticleResponse.class))),
+            @ApiResponse(responseCode = "400", description = "조회 실패 (Bad Request)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "조회 실패 (Unauthorized)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "조회 실패 (Not Found) / ex: 게시물이 존재하지 않는 경우",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    @GetMapping("/{articleId}")
+    public ResponseEntity<?> findArticle(
+            @Parameter(description = "게시물 아이디", example = "42") @PathVariable("articleId") String articleId,
+            Principal principal) {
+        FindArticleAppRequest appRequest = new FindArticleAppRequest();
+
+        try {
+            appRequest.setUsernameRequestedBy(principal.getName());
+            appRequest.setArticleId(Long.parseLong(articleId));
+        } catch (NumberFormatException e) {
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setErrors(List.of("invalid article"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        FindArticleAppResponse appResponse = this.articleApplication.find(appRequest);
+
+        if (appResponse.getStatus() != FindArticleAppResponseStatus.SUCCESS) {
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setErrors(List.of("invalid article"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        FindArticleResponse response = new FindArticleResponse();
+        response.setArticleId(appResponse.getId().orElseThrow().toString());
+        response.setUser(UserController.createFindUserResponse(appResponse.getUser()));
+        response.setVideo(VideoController.createFindVideoResponse(appResponse.getVideo()));
+        response.setTitle(appResponse.getTitle());
+        response.setDescription(appResponse.getDescription());
+        response.setLevel(appResponse.getLevel());
+        response.setAngle(appResponse.getAngle());
+        response.setViewCount(appResponse.getViewCount());
+        response.setFavoriteCount(appResponse.getFavoriteCount());
+        response.setRegisterDateTime(appResponse.getRegisterDateTime().orElseThrow());
+        response.setFavorite(appResponse.isFavorite());
+        return ResponseEntity.ok(response);
+    }
 
     @Operation(summary = "게시물 등록", description = """
             게시물 등록 API
@@ -78,7 +133,7 @@ public class ArticleController {
         }
 
         WriteArticleResponse response = new WriteArticleResponse();
-        response.setArticleId(appResponse.getId().get().toString());
+        response.setArticleId(appResponse.getId().orElseThrow().toString());
         return ResponseEntity.ok(response);
     }
 

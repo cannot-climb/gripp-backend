@@ -33,6 +33,19 @@ import java.util.stream.Collectors;
 public class UserController {
     private final UserApplication userApplication;
 
+    public static FindUserResponse createFindUserResponse(FindUserAppResponse appResponse) {
+        FindUserResponse response = new FindUserResponse();
+        response.setUsername(appResponse.getUsername().orElseThrow());
+        response.setTier(appResponse.getTier());
+        response.setScore(appResponse.getScore() / 100.0f);
+        response.setRank(appResponse.getRank());
+        response.setPercentile(appResponse.getPercentile());
+        response.setArticleCount(appResponse.getArticleCount());
+        response.setArticleCertifiedCount(appResponse.getArticleCertifiedCount());
+        response.setRegisterDateTime(appResponse.getRegisterDateTime().orElseThrow());
+        return response;
+    }
+
     @Operation(summary = "회원정보", description = """
             회원정보 API
 
@@ -58,7 +71,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
-        return ResponseEntity.ok(this.createFindUserResponse(appResponse));
+        return ResponseEntity.ok(createFindUserResponse(appResponse));
     }
 
     @Operation(summary = "리더보드", description = """
@@ -88,23 +101,10 @@ public class UserController {
 
         FindLeaderBoardResponse response = new FindLeaderBoardResponse();
         response.setTopBoard(appResponse.getTopBoard().stream()
-                .map(this::createFindUserResponse).collect(Collectors.toList()));
+                .map(UserController::createFindUserResponse).collect(Collectors.toList()));
         response.setDefaultBoard(appResponse.getDefaultBoard().stream()
-                .map(this::createFindUserResponse).collect(Collectors.toList()));
+                .map(UserController::createFindUserResponse).collect(Collectors.toList()));
 
         return ResponseEntity.ok(response);
-    }
-
-    private FindUserResponse createFindUserResponse(FindUserAppResponse appResponse) {
-        FindUserResponse response = new FindUserResponse();
-        response.setUsername(appResponse.getUsername().orElseThrow());
-        response.setTier(appResponse.getTier());
-        response.setScore(appResponse.getScore() / 100.0f);
-        response.setRank(appResponse.getRank());
-        response.setPercentile(appResponse.getPercentile());
-        response.setArticleCount(appResponse.getArticleCount());
-        response.setArticleCertifiedCount(appResponse.getArticleCertifiedCount());
-        response.setRegisterDateTime(appResponse.getRegisterDateTime().orElseThrow());
-        return response;
     }
 }

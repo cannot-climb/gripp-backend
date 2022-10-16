@@ -32,6 +32,17 @@ import java.util.List;
 public class VideoController {
     private final VideoApplication videoApplication;
 
+    public static FindVideoResponse createFindVideoResponse(FindVideoAppResponse appResponse) {
+        FindVideoResponse response = new FindVideoResponse();
+        response.setVideoId(appResponse.getUuid());
+        response.setStreamingUrl(appResponse.getStreamingUrl());
+        response.setStreamingLength(appResponse.getStreamingLength());
+        response.setStreamingAspectRatio(appResponse.getStreamingAspectRatio());
+        response.setThumbnailUrl(appResponse.getThumbnailUrl());
+        response.setStatus(appResponse.getStatus());
+        return response;
+    }
+
     @Operation(summary = "영상 업로드", description = """
             영상 업로드 API
 
@@ -100,13 +111,6 @@ public class VideoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
 
-        FindVideoResponse response = new FindVideoResponse();
-        response.setVideoId(appResponse.getUuid());
-        response.setStreamingUrl(appResponse.getStreamingUrl());
-        response.setStreamingLength(appResponse.getStreamingLength());
-        response.setStreamingAspectRatio(appResponse.getStreamingAspectRatio());
-        response.setThumbnailUrl(appResponse.getThumbnailUrl());
-        response.setStatus(appResponse.getStatus());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(createFindVideoResponse(appResponse));
     }
 }

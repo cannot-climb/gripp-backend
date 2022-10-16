@@ -171,7 +171,7 @@ public class VideoApplicationImpl implements VideoApplication {
     @RabbitListener(queues = RabbitConfig.VIDEO_PROCESSOR_RETURN_QUEUE_KEY)
     public void onReturnVideoProcessor(VideoProcessorResponse response) throws IOException {
         this.logger.info("영상 처리 응답 수신 - " + response);
-        Video video = this.videoRepository.findByUuidForUpdate(response.getRequest().getUuid()).orElse(null);
+        Video video = this.videoRepository.findForUpdateByUuid(response.getRequest().getUuid()).orElse(null);
 
         if (video == null) {
             this.logger.error("영상이 존재하지 않습니다 - " + response);
@@ -182,11 +182,11 @@ public class VideoApplicationImpl implements VideoApplication {
                 response.getStreamingAspectRatio(), response.getThumbnailUrl(), response.isCertified());
 
         if (video.isCertified()) {
-            Article existedArticle = this.articleRepository.findByVideoIdWithReadLock(video.getId()).orElse(null);
+            Article existedArticle = this.articleRepository.findForShareByVideoId(video.getId()).orElse(null);
 
             if (existedArticle != null && existedArticle.getUser() != null) {
                 // 영상이 PREPROCESSING 상태에서 먼저 게시글로 등록되고 이후에 CERTIFIED 판정을 받은 경우
-                User user = this.userRepository.findByIdForUpdate(existedArticle.getUser().getId()).orElseThrow();
+                User user = this.userRepository.findForUpdateById(existedArticle.getUser().getId()).orElseThrow();
                 // 유저에게 작성했던 게시글의 CERTIFIED 판정 알림
                 this.userService.noticeNewCertified(user);
             }

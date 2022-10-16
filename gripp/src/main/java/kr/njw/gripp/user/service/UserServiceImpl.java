@@ -72,8 +72,11 @@ public class UserServiceImpl implements UserService {
     }
 
     private void refreshScore(User user) {
-        List<Article> articles = this.articleRepository.findTopWithReadLock(user.getId(), VideoStatus.CERTIFIED,
-                Pageable.ofSize(User.ARTICLE_MAX_COUNT_FOR_COMPUTE_SCORE));
+        List<Article> articles = this.articleRepository.findForShareByUserIdAndVideoStatusOrderByLevelDesc(
+                user.getId(),
+                VideoStatus.CERTIFIED,
+                Pageable.ofSize(User.ARTICLE_MAX_COUNT_FOR_COMPUTE_SCORE)
+        );
 
         user.submitScore(articles);
     }

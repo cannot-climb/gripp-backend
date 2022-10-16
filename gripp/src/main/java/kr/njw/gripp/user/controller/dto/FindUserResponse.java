@@ -22,7 +22,7 @@ public class FindUserResponse {
     private int articleCount;
     @Schema(description = "등반 성공 게시물 개수", example = "63")
     private int articleCertifiedCount;
-    @Schema(description = "가입일시", type = "string", example = "2022-09-28 16:46:59")
+    @Schema(description = "가입일시", type = "string", example = "2022-09-28 16:06:59")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime registerDateTime;
 }

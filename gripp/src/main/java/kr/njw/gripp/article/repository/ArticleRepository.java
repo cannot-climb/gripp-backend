@@ -16,17 +16,19 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
     boolean existsByVideoId(Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select a from Article a join fetch a.user join fetch a.video where a.id = :id")
-    Optional<Article> findByIdForUpdate(@Param("id") Long id);
+    @EntityGraph(attributePaths = {"user", "video"}, type = EntityGraph.EntityGraphType.LOAD)
+    Optional<Article> findForUpdateById(Long id);
 
     @Lock(LockModeType.PESSIMISTIC_READ)
-    @Query("select a from Article a join fetch a.user join fetch a.video where a.video.id = :videoId")
-    Optional<Article> findByVideoIdWithReadLock(@Param("videoId") Long videoId);
+    @EntityGraph(attributePaths = {"user", "video"}, type = EntityGraph.EntityGraphType.LOAD)
+    Optional<Article> findForShareByVideoId(Long videoId);
 
     @Lock(LockModeType.PESSIMISTIC_READ)
-    @Query("""
-            select a from Article a join fetch a.user join fetch a.video
-            where a.user.id = :userId and a.video.status = :videoStatus order by a.level desc""")
-    List<Article> findTopWithReadLock(@Param("userId") Long userId, @Param("videoStatus") VideoStatus status,
-                                      Pageable pageable);
+    @EntityGraph(attributePaths = {"user", "video"}, type = EntityGraph.EntityGraphType.LOAD)
+    List<Article> findForShareByUserIdAndVideoStatusOrderByLevelDesc(Long userId, VideoStatus status,
+                                                                     Pageable pageable);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Article a set a.viewCount = a.viewCount + 1 where a.id = :id")
+    void addViewCountById(@Param("id") Long id);
 }

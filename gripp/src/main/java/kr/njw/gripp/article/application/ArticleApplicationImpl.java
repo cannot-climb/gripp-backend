@@ -31,8 +31,8 @@ public class ArticleApplicationImpl implements ArticleApplication {
     @Transactional
     public WriteArticleAppResponse write(WriteArticleAppRequest request) {
         WriteArticleAppResponse response = new WriteArticleAppResponse();
-        Video video = this.videoRepository.findByUuidWithReadLock(request.getVideoUuid()).orElse(null);
-        User user = this.userRepository.findByUsernameForUpdate(request.getUsername()).orElse(null);
+        Video video = this.videoRepository.findForShareByUuid(request.getVideoUuid()).orElse(null);
+        User user = this.userRepository.findForUpdateByUsername(request.getUsername()).orElse(null);
 
         if (video == null) {
             response.setStatus(WriteArticleAppResponseStatus.NO_VIDEO);
@@ -78,7 +78,7 @@ public class ArticleApplicationImpl implements ArticleApplication {
     @Transactional
     public DeleteArticleAppResponse delete(DeleteArticleAppRequest request) {
         DeleteArticleAppResponse response = new DeleteArticleAppResponse();
-        Article article = this.articleRepository.findByIdForUpdate(request.getArticleId()).orElse(null);
+        Article article = this.articleRepository.findForUpdateById(request.getArticleId()).orElse(null);
 
         if (article == null) {
             response.setStatus(DeleteArticleAppResponseStatus.NO_ARTICLE);

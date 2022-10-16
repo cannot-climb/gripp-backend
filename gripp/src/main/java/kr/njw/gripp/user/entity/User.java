@@ -46,8 +46,26 @@ public class User {
         this.articleCount++;
     }
 
+    public void decrementArticleCount() {
+        this.articleCount--;
+
+        if (this.articleCount < 0) {
+            this.articleCount = 0;
+            this.logger.error("article count must be non negative");
+        }
+    }
+
     public void incrementArticleCertifiedCount() {
         this.articleCertifiedCount++;
+    }
+
+    public void decrementArticleCertifiedCount() {
+        this.articleCertifiedCount--;
+
+        if (this.articleCertifiedCount < 0) {
+            this.articleCertifiedCount = 0;
+            this.logger.error("article certified count must be non negative");
+        }
     }
 
     public void submitScore(Collection<Article> bestArticlesForComputeScore) {

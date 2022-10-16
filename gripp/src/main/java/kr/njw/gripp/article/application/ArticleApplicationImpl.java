@@ -1,8 +1,6 @@
 package kr.njw.gripp.article.application;
 
-import kr.njw.gripp.article.application.dto.WriteArticleAppRequest;
-import kr.njw.gripp.article.application.dto.WriteArticleAppResponse;
-import kr.njw.gripp.article.application.dto.WriteArticleAppResponseStatus;
+import kr.njw.gripp.article.application.dto.*;
 import kr.njw.gripp.article.entity.Article;
 import kr.njw.gripp.article.repository.ArticleFavoriteRepository;
 import kr.njw.gripp.article.repository.ArticleRepository;
@@ -74,7 +72,38 @@ public class ArticleApplicationImpl implements ArticleApplication {
 
         response.setStatus(WriteArticleAppResponseStatus.SUCCESS);
         response.setId(article.getId());
+        return response;
+    }
 
+    @Transactional
+    public DeleteArticleAppResponse delete(DeleteArticleAppRequest request) {
+        DeleteArticleAppResponse response = new DeleteArticleAppResponse();
+        Article article = this.articleRepository.findByIdForUpdate(request.getArticleId()).orElse(null);
+
+        if (article == null) {
+            response.setStatus(DeleteArticleAppResponseStatus.NO_ARTICLE);
+            this.logger.warn("게시물이 없습니다 - " + request);
+            return response;
+        }
+
+        Video video = article.getVideo();
+        User user = article.getUser();
+
+        if (user == null || !user.getUsername().equals(request.getUsername())) {
+            response.setStatus(DeleteArticleAppResponseStatus.FORBIDDEN);
+            this.logger.warn("잘못된 유저입니다 - " + request + ", " + user);
+            return response;
+        }
+
+        this.articleRepository.delete(article);
+        this.videoRepository.delete(video);
+        this.userService.noticeDeleteArticle(user);
+
+        if (video.isCertified()) {
+            this.userService.noticeDeleteCertified(user);
+        }
+
+        response.setStatus(DeleteArticleAppResponseStatus.SUCCESS);
         return response;
     }
 }

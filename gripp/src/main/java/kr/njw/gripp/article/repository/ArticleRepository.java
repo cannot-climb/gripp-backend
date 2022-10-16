@@ -15,9 +15,13 @@ import java.util.Optional;
 public interface ArticleRepository extends JpaRepository<Article, Long> {
     boolean existsByVideoId(Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select a from Article a join fetch a.user join fetch a.video where a.id = :id")
+    Optional<Article> findByIdForUpdate(@Param("id") Long id);
+
     @Lock(LockModeType.PESSIMISTIC_READ)
-    @Query("select a from Article a join fetch a.user join fetch a.video where a.video.id = :id")
-    Optional<Article> findByVideoIdWithReadLock(@Param("id") Long id);
+    @Query("select a from Article a join fetch a.user join fetch a.video where a.video.id = :videoId")
+    Optional<Article> findByVideoIdWithReadLock(@Param("videoId") Long videoId);
 
     @Lock(LockModeType.PESSIMISTIC_READ)
     @Query("""

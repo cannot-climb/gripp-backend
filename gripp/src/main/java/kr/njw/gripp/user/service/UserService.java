@@ -6,4 +6,8 @@ public interface UserService {
     void noticeNewArticle(User user);
 
     void noticeNewCertified(User user);
+
+    void noticeDeleteArticle(User user);
+
+    void noticeDeleteCertified(User user);
 }

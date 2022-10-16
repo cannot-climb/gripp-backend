@@ -2,6 +2,7 @@ package kr.njw.gripp.article.controller;
 
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,8 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.njw.gripp.article.application.ArticleApplication;
-import kr.njw.gripp.article.application.dto.WriteArticleAppRequest;
-import kr.njw.gripp.article.application.dto.WriteArticleAppResponse;
+import kr.njw.gripp.article.application.dto.*;
+import kr.njw.gripp.article.controller.dto.DeleteArticleResponse;
 import kr.njw.gripp.article.controller.dto.WriteArticleRequest;
 import kr.njw.gripp.article.controller.dto.WriteArticleResponse;
 import kr.njw.gripp.global.dto.ErrorResponse;
@@ -19,10 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
@@ -81,6 +79,63 @@ public class ArticleController {
 
         WriteArticleResponse response = new WriteArticleResponse();
         response.setArticleId(appResponse.getId().get().toString());
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "게시물 삭제", description = """
+            게시물 삭제 API
+
+            게시물을 삭제하면 해당 게시물로 획득한 점수도 회수됨""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "삭제 완료",
+                    content = @Content(schema = @Schema(implementation = DeleteArticleResponse.class))),
+            @ApiResponse(responseCode = "400", description = "삭제 실패 (Bad Request)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "삭제 실패 (Unauthorized)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "삭제 실패 (Forbidden) / ex: 자신의 게시물이 아닌 경우",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "삭제 실패 (Not Found) / ex: 게시물이 존재하지 않는 경우",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    @DeleteMapping("/{articleId}")
+    public ResponseEntity<?> deleteArticle(
+            @Parameter(description = "게시물 아이디", example = "42") @PathVariable("articleId") String articleId,
+            Principal principal) {
+        DeleteArticleAppRequest appRequest = new DeleteArticleAppRequest();
+
+        try {
+            appRequest.setUsername(principal.getName());
+            appRequest.setArticleId(Long.parseLong(articleId));
+        } catch (NumberFormatException e) {
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setErrors(List.of("invalid article"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        DeleteArticleAppResponse appResponse = this.articleApplication.delete(appRequest);
+
+        if (appResponse.getStatus() != DeleteArticleAppResponseStatus.SUCCESS) {
+            ErrorResponse errorResponse = new ErrorResponse();
+
+            switch (appResponse.getStatus()) {
+                case NO_ARTICLE -> {
+                    errorResponse.setErrors(List.of("invalid article"));
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+                }
+                case FORBIDDEN -> {
+                    errorResponse.setErrors(List.of("forbidden operation"));
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+                }
+                default -> {
+                    errorResponse.setErrors(List.of("fail to delete"));
+                    return ResponseEntity.badRequest().body(errorResponse);
+                }
+            }
+        }
+
+        DeleteArticleResponse response = new DeleteArticleResponse();
+        response.setArticleId(String.valueOf(Long.parseLong(articleId)));
         return ResponseEntity.ok(response);
     }
 }

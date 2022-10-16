@@ -40,12 +40,41 @@ public class UserServiceImpl implements UserService {
             return;
         }
 
+        user.incrementArticleCertifiedCount();
+        this.refreshScore(user);
+        this.userRepository.save(user);
+        this.logger.info("새로운 등반 성공 발생 - " + user.getUsername());
+    }
+
+    @Transactional
+    public void noticeDeleteArticle(User user) {
+        if (user == null) {
+            this.logger.warn("회원이 존재하지 않습니다");
+            return;
+        }
+
+        user.decrementArticleCount();
+        this.userRepository.save(user);
+        this.logger.info("게시물 기록 삭제 - " + user.getUsername());
+    }
+
+    @Transactional
+    public void noticeDeleteCertified(User user) {
+        if (user == null) {
+            this.logger.warn("회원이 존재하지 않습니다");
+            return;
+        }
+
+        user.decrementArticleCertifiedCount();
+        this.refreshScore(user);
+        this.userRepository.save(user);
+        this.logger.info("등반 성공 기록 삭제 - " + user.getUsername());
+    }
+
+    private void refreshScore(User user) {
         List<Article> articles = this.articleRepository.findTopWithReadLock(user.getId(), VideoStatus.CERTIFIED,
                 Pageable.ofSize(User.ARTICLE_MAX_COUNT_FOR_COMPUTE_SCORE));
 
-        user.incrementArticleCertifiedCount();
         user.submitScore(articles);
-        this.userRepository.save(user);
-        this.logger.info("새로운 등반 성공 발생 - " + user.getUsername());
     }
 }

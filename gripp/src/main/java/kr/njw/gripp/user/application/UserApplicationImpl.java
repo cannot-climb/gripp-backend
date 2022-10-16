@@ -61,7 +61,7 @@ public class UserApplicationImpl implements UserApplication {
             long rankEnd = this.userRepository.countByScoreGreaterThan(0) + 1;
             AtomicLong fetchedUserCount = new AtomicLong(0);
             AtomicLong lastRank = new AtomicLong(0);
-            AtomicInteger lastScore = new AtomicInteger(0);
+            AtomicInteger lastScore = new AtomicInteger(Integer.MAX_VALUE);
             AtomicBoolean isMeFetched = new AtomicBoolean(false);
             Queue<FindUserAppResponse> defaultBoardTopQueue = new LinkedList<>();
             AtomicLong defaultBoardBottomRemainSize = new AtomicLong(LEADER_BOARD_DEFAULT_BOARD_SIDE_SIZE);

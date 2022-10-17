@@ -8,4 +8,6 @@ public interface ArticleApplication {
     WriteArticleAppResponse write(WriteArticleAppRequest request);
 
     DeleteArticleAppResponse delete(DeleteArticleAppRequest request);
+
+    ReactArticleAppResponse react(ReactArticleAppRequest request);
 }

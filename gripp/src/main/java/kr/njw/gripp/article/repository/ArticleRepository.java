@@ -32,5 +32,13 @@ public interface ArticleRepository extends JpaRepository<Article, Long> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Article a set a.viewCount = a.viewCount + 1 where a.id = :id")
-    void addViewCountById(@Param("id") Long id);
+    void incrementViewCountById(@Param("id") Long id);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Article a set a.favoriteCount = a.favoriteCount + 1 where a.id = :id")
+    void incrementFavoriteCountById(@Param("id") Long id);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Article a set a.favoriteCount = a.favoriteCount - 1 where a.id = :id and a.favoriteCount > 0")
+    void decrementFavoriteCountById(@Param("id") Long id);
 }

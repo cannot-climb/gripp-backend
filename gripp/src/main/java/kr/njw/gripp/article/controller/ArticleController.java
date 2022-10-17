@@ -11,10 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.njw.gripp.article.application.ArticleApplication;
 import kr.njw.gripp.article.application.dto.*;
-import kr.njw.gripp.article.controller.dto.DeleteArticleResponse;
-import kr.njw.gripp.article.controller.dto.FindArticleResponse;
-import kr.njw.gripp.article.controller.dto.WriteArticleRequest;
-import kr.njw.gripp.article.controller.dto.WriteArticleResponse;
+import kr.njw.gripp.article.controller.dto.*;
 import kr.njw.gripp.global.dto.ErrorResponse;
 import kr.njw.gripp.user.controller.UserController;
 import kr.njw.gripp.video.controller.VideoController;
@@ -191,6 +188,50 @@ public class ArticleController {
 
         DeleteArticleResponse response = new DeleteArticleResponse();
         response.setArticleId(String.valueOf(Long.parseLong(articleId)));
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "게시물 리액션", description = """
+            게시물 리액션 API
+
+            현재는 좋아요 등록, 해제 기능만 지원""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "리액션 완료",
+                    content = @Content(schema = @Schema(implementation = ReactArticleResponse.class))),
+            @ApiResponse(responseCode = "400", description = "리액션 실패 (Bad Request)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "리액션 실패 (Unauthorized)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "리액션 실패 (Not Found) / ex: 게시물이 존재하지 않는 경우",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    @PatchMapping("/{articleId}/reaction")
+    public ResponseEntity<?> reactArticle(
+            @Parameter(description = "게시물 아이디", example = "42") @PathVariable("articleId") String articleId,
+            @Valid @RequestBody ReactArticleRequest request,
+            Principal principal) {
+        ReactArticleAppRequest appRequest = new ReactArticleAppRequest();
+
+        try {
+            appRequest.setUsernameRequestedBy(principal.getName());
+            appRequest.setArticleId(Long.parseLong(articleId));
+            appRequest.setFavorite(request.getFavorite());
+        } catch (NumberFormatException e) {
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setErrors(List.of("invalid article"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        ReactArticleAppResponse appResponse = this.articleApplication.react(appRequest);
+
+        if (appResponse.getStatus() != ReactArticleAppResponseStatus.SUCCESS) {
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setErrors(List.of("invalid article"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        ReactArticleResponse response = new ReactArticleResponse();
+        response.setFavorite(appResponse.isFavorite());
         return ResponseEntity.ok(response);
     }
 }

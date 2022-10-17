@@ -2,6 +2,7 @@ package kr.njw.gripp.article.application;
 
 import kr.njw.gripp.article.application.dto.*;
 import kr.njw.gripp.article.entity.Article;
+import kr.njw.gripp.article.entity.ArticleFavorite;
 import kr.njw.gripp.article.repository.ArticleFavoriteRepository;
 import kr.njw.gripp.article.repository.ArticleRepository;
 import kr.njw.gripp.user.application.UserApplication;
@@ -37,7 +38,7 @@ public class ArticleApplicationImpl implements ArticleApplication {
     public FindArticleAppResponse find(FindArticleAppRequest request) {
         FindArticleAppResponse response = new FindArticleAppResponse();
         Article article = this.articleRepository.findById(request.getArticleId()).orElse(null);
-        User requestor = this.userRepository.findByUsername(request.getUsernameRequestedBy()).orElse(null);
+        User requester = this.userRepository.findByUsername(request.getUsernameRequestedBy()).orElse(null);
 
         if (article == null) {
             response.setStatus(FindArticleAppResponseStatus.NO_ARTICLE);
@@ -60,8 +61,8 @@ public class ArticleApplicationImpl implements ArticleApplication {
             return response;
         }
 
-        if (!request.getUsernameRequestedBy().equals(findUserAppResponse.getUsername().orElse(null))) {
-            this.articleRepository.addViewCountById(article.getId());
+        if (requester != null && !requester.getUsername().equals(findUserAppResponse.getUsername().orElse(null))) {
+            this.articleRepository.incrementViewCountById(article.getId());
             article = this.articleRepository.findById(request.getArticleId()).orElseThrow();
             this.logger.info("게시물 조회수 증가 - " + request);
         }
@@ -78,9 +79,9 @@ public class ArticleApplicationImpl implements ArticleApplication {
         response.setFavoriteCount(article.getFavoriteCount());
         response.setRegisterDateTime(article.getRegisterDateTime());
 
-        if (requestor != null) {
+        if (requester != null) {
             response.setFavorite(this.articleFavoriteRepository.existsByArticleIdAndUserId(
-                    article.getId(), requestor.getId()));
+                    article.getId(), requester.getId()));
         } else {
             response.setFavorite(false);
         }
@@ -102,7 +103,7 @@ public class ArticleApplicationImpl implements ArticleApplication {
 
         if (user == null) {
             response.setStatus(WriteArticleAppResponseStatus.NO_USER);
-            this.logger.warn("유저가 없습니다 - " + request);
+            this.logger.error("유저가 없습니다 - " + request);
             return response;
         }
 
@@ -164,6 +165,50 @@ public class ArticleApplicationImpl implements ArticleApplication {
         }
 
         response.setStatus(DeleteArticleAppResponseStatus.SUCCESS);
+        return response;
+    }
+
+    @Transactional
+    public ReactArticleAppResponse react(ReactArticleAppRequest request) {
+        ReactArticleAppResponse response = new ReactArticleAppResponse();
+        Article article = this.articleRepository.findById(request.getArticleId()).orElse(null);
+        User user = this.userRepository.findByUsername(request.getUsernameRequestedBy()).orElse(null);
+
+        if (article == null) {
+            response.setStatus(ReactArticleAppResponseStatus.NO_ARTICLE);
+            this.logger.warn("게시물이 없습니다 - " + request);
+            return response;
+        }
+
+        if (user == null) {
+            response.setStatus(ReactArticleAppResponseStatus.SUCCESS);
+            this.logger.error("유저가 없습니다 - " + request);
+            return response;
+        }
+
+        if (request.isFavorite()) {
+            if (!this.articleFavoriteRepository.existsByArticleIdAndUserId(article.getId(), user.getId())) {
+                ArticleFavorite articleFavorite = ArticleFavorite.builder()
+                        .article(article)
+                        .user(user)
+                        .registerDateTime(LocalDateTime.now())
+                        .build();
+
+                this.articleFavoriteRepository.save(articleFavorite);
+                this.articleRepository.incrementFavoriteCountById(article.getId());
+                this.logger.info("게시물 리액션 발생 - " + request);
+            }
+        } else {
+            this.articleFavoriteRepository.findByArticleIdAndUserId(article.getId(), user.getId())
+                    .ifPresent(articleFavorite -> {
+                        this.articleFavoriteRepository.delete(articleFavorite);
+                        this.articleRepository.decrementFavoriteCountById(article.getId());
+                        this.logger.info("게시물 리액션 발생 - " + request);
+                    });
+        }
+
+        response.setStatus(ReactArticleAppResponseStatus.SUCCESS);
+        response.setFavorite(request.isFavorite());
         return response;
     }
 }

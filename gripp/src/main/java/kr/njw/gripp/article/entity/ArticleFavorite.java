@@ -7,7 +7,9 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "article_favorite")
+@Table(name = "article_favorite", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"article_id", "user_id"})
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

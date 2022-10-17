@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface ArticleRepository extends JpaRepository<Article, Long> {
     boolean existsByVideoId(Long id);
 
+    @Override
     @EntityGraph(attributePaths = {"user", "video"}, type = EntityGraph.EntityGraphType.LOAD)
     Optional<Article> findById(Long id);
 

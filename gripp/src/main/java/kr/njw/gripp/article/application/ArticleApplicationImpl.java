@@ -37,6 +37,7 @@ public class ArticleApplicationImpl implements ArticleApplication {
     public FindArticleAppResponse find(FindArticleAppRequest request) {
         FindArticleAppResponse response = new FindArticleAppResponse();
         Article article = this.articleRepository.findById(request.getArticleId()).orElse(null);
+        User requestor = this.userRepository.findByUsername(request.getUsernameRequestedBy()).orElse(null);
 
         if (article == null) {
             response.setStatus(FindArticleAppResponseStatus.NO_ARTICLE);
@@ -76,8 +77,14 @@ public class ArticleApplicationImpl implements ArticleApplication {
         response.setViewCount(article.getViewCount());
         response.setFavoriteCount(article.getFavoriteCount());
         response.setRegisterDateTime(article.getRegisterDateTime());
-        response.setFavorite(this.articleFavoriteRepository.existsByArticleIdAndUserId(
-                article.getId(), article.getUser().getId()));
+
+        if (requestor != null) {
+            response.setFavorite(this.articleFavoriteRepository.existsByArticleIdAndUserId(
+                    article.getId(), requestor.getId()));
+        } else {
+            response.setFavorite(false);
+        }
+
         return response;
     }
 

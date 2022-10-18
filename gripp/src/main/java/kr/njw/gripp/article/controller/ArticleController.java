@@ -11,7 +11,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.njw.gripp.article.application.ArticleApplication;
 import kr.njw.gripp.article.application.dto.*;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppRequest;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppRequestFilter;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppRequestOrder;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppResponse;
 import kr.njw.gripp.article.controller.dto.*;
+import kr.njw.gripp.article.controller.dto.search.*;
 import kr.njw.gripp.global.dto.ErrorResponse;
 import kr.njw.gripp.user.controller.UserController;
 import kr.njw.gripp.video.controller.VideoController;
@@ -24,7 +29,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Tag(name = "Article")
 @SecurityRequirement(name = "accessToken")
@@ -232,6 +239,76 @@ public class ArticleController {
 
         ReactArticleResponse response = new ReactArticleResponse();
         response.setFavorite(appResponse.isFavorite());
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "게시물 검색", description = """
+            게시물 검색 API
+
+            모바일 앱 환경과 서버의 성능을 고려하여 페이징을 사용함
+
+            처음에는 pageToken 필드를 비워서 요청\040\040
+            그 다음부터는 nextPageToken을 pageToken 필드에 넣어가며 순차적으로 요청\040\040
+            nextPageToken이 공백 문자열이 될 때까지 반복하면 모든 검색 결과를 받을 수 있음""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "검색 완료",
+                    content = @Content(schema = @Schema(implementation = SearchArticleResponse.class))),
+            @ApiResponse(responseCode = "400", description = "검색 실패 (Bad Request)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "검색 실패 (Unauthorized)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    @PostMapping("/search")
+    public ResponseEntity<?> searchArticle(@Valid @RequestBody SearchArticleRequest request) {
+        SearchArticleAppRequest appRequest = new SearchArticleAppRequest();
+        appRequest.setFilters(
+                Objects.requireNonNullElse(request.getFilters(), new ArrayList<SearchArticleRequestFilter>())
+                        .stream()
+                        .map(filter -> switch (filter.getType()) {
+                            case TITLE -> SearchArticleAppRequestFilter.builder()
+                                    .titleLike(filter.getTitleLike()).build();
+                            case USER -> SearchArticleAppRequestFilter.builder()
+                                    .username(filter.getUsername()).build();
+                            case LEVEL -> SearchArticleAppRequestFilter.builder()
+                                    .minLevel(filter.getMinLevel()).maxLevel(filter.getMaxLevel()).build();
+                            case ANGLE -> SearchArticleAppRequestFilter.builder()
+                                    .minAngle(filter.getMinAngle()).maxAngle(filter.getMaxAngle()).build();
+                            case DATETIME -> SearchArticleAppRequestFilter.builder()
+                                    .minDateTime(filter.getMinDateTime()).maxDateTime(filter.getMaxDateTime()).build();
+                            case STATUS -> SearchArticleAppRequestFilter.builder()
+                                    .statusIn(filter.getStatusIn()).build();
+                        })
+                        .toList());
+        appRequest.setOrder(switch (Objects.requireNonNullElse(request.getOrder(), SearchArticleRequestOrder.NEW)) {
+            case OLD -> SearchArticleAppRequestOrder.OLD;
+            case VIEW -> SearchArticleAppRequestOrder.VIEW;
+            case POPULAR -> SearchArticleAppRequestOrder.POPULAR;
+            case HARD -> SearchArticleAppRequestOrder.HARD;
+            case EASY -> SearchArticleAppRequestOrder.EASY;
+            default -> SearchArticleAppRequestOrder.NEW;
+        });
+        appRequest.setPageToken(Objects.requireNonNullElse(request.getPageToken(), ""));
+
+        SearchArticleAppResponse appResponse = this.articleApplication.search(appRequest);
+
+        SearchArticleResponse response = new SearchArticleResponse();
+        response.setArticles(appResponse.getArticles().stream()
+                .map(article -> {
+                    SearchArticleResponseItem item = new SearchArticleResponseItem();
+                    item.setArticleId(article.getId().orElseThrow().toString());
+                    item.setUsername(article.getUsername());
+                    item.setVideo(VideoController.createFindVideoResponse(article.getVideo()));
+                    item.setTitle(article.getTitle());
+                    item.setDescription(article.getDescription());
+                    item.setLevel(article.getLevel());
+                    item.setAngle(article.getAngle());
+                    item.setViewCount(article.getViewCount());
+                    item.setFavoriteCount(article.getFavoriteCount());
+                    item.setRegisterDateTime(article.getRegisterDateTime().orElseThrow());
+                    return item;
+                })
+                .toList());
+        response.setNextPageToken(appResponse.getNextPageToken());
         return ResponseEntity.ok(response);
     }
 }

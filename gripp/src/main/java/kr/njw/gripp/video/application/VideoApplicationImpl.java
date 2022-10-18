@@ -9,6 +9,7 @@ import kr.njw.gripp.user.repository.UserRepository;
 import kr.njw.gripp.user.service.UserService;
 import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.application.dto.UploadVideoAppResponse;
+import kr.njw.gripp.video.application.util.VideoApplicationUtil;
 import kr.njw.gripp.video.entity.Video;
 import kr.njw.gripp.video.entity.vo.VideoStatus;
 import kr.njw.gripp.video.repository.VideoRepository;
@@ -156,15 +157,7 @@ public class VideoApplicationImpl implements VideoApplication {
             return response;
         }
 
-        FindVideoAppResponse response = new FindVideoAppResponse();
-        response.setSuccess(true);
-        response.setUuid(video.get().getUuid());
-        response.setStreamingUrl(video.get().getStreamingUrl());
-        response.setStreamingLength(video.get().getStreamingLength());
-        response.setStreamingAspectRatio(video.get().getStreamingAspectRatio());
-        response.setThumbnailUrl(video.get().getThumbnailUrl());
-        response.setStatus(video.get().getStatus());
-        return response;
+        return VideoApplicationUtil.createFindVideoAppResponse(video.get());
     }
 
     @Transactional(rollbackFor = Exception.class)

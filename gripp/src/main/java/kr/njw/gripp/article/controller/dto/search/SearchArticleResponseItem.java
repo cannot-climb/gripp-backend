@@ -1,18 +1,18 @@
-package kr.njw.gripp.article.controller.dto;
+package kr.njw.gripp.article.controller.dto.search;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-import kr.njw.gripp.user.controller.dto.FindUserResponse;
 import kr.njw.gripp.video.controller.dto.FindVideoResponse;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-public class FindArticleResponse {
+public class SearchArticleResponseItem {
     @Schema(description = "게시물 아이디", example = "42")
     private String articleId;
-    private FindUserResponse user;
+    @Schema(description = "유저 아이디", example = "njw1204")
+    private String username;
     private FindVideoResponse video;
     @Schema(description = "제목", example = "Bell of the Wall")
     private String title;
@@ -29,6 +29,4 @@ public class FindArticleResponse {
     @Schema(description = "게시일시", type = "string", example = "2022-10-17 13:01:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime registerDateTime;
-    @Schema(description = "내가 좋아요를 눌렀는지 여부", example = "true")
-    private boolean favorite;
 }

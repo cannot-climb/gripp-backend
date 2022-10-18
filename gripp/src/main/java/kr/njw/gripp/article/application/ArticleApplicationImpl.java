@@ -1,10 +1,16 @@
 package kr.njw.gripp.article.application;
 
 import kr.njw.gripp.article.application.dto.*;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppRequest;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppResponse;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppResponseItem;
 import kr.njw.gripp.article.entity.Article;
 import kr.njw.gripp.article.entity.ArticleFavorite;
 import kr.njw.gripp.article.repository.ArticleFavoriteRepository;
 import kr.njw.gripp.article.repository.ArticleRepository;
+import kr.njw.gripp.article.repository.dto.SearchArticleRepoPageToken;
+import kr.njw.gripp.article.repository.dto.SearchArticleRepoRequestFilter;
+import kr.njw.gripp.article.repository.dto.SearchArticleRepoRequestOrder;
 import kr.njw.gripp.user.application.UserApplication;
 import kr.njw.gripp.user.application.dto.FindUserAppResponse;
 import kr.njw.gripp.user.entity.User;
@@ -12,6 +18,7 @@ import kr.njw.gripp.user.repository.UserRepository;
 import kr.njw.gripp.user.service.UserService;
 import kr.njw.gripp.video.application.VideoApplication;
 import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
+import kr.njw.gripp.video.application.util.VideoApplicationUtil;
 import kr.njw.gripp.video.entity.Video;
 import kr.njw.gripp.video.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +28,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class ArticleApplicationImpl implements ArticleApplication {
+    private static final int SEARCH_LIMIT = 30;
+
     private final UserApplication userApplication;
     private final VideoApplication videoApplication;
     private final UserService userService;
@@ -186,8 +197,11 @@ public class ArticleApplicationImpl implements ArticleApplication {
             return response;
         }
 
+        Optional<ArticleFavorite> oldFavorite = this.articleFavoriteRepository.findForUpdateByArticleIdAndUserId(
+                article.getId(), user.getId());
+
         if (request.isFavorite()) {
-            if (!this.articleFavoriteRepository.existsByArticleIdAndUserId(article.getId(), user.getId())) {
+            if (oldFavorite.isEmpty()) {
                 ArticleFavorite articleFavorite = ArticleFavorite.builder()
                         .article(article)
                         .user(user)
@@ -199,16 +213,59 @@ public class ArticleApplicationImpl implements ArticleApplication {
                 this.logger.info("게시물 리액션 발생 - " + request);
             }
         } else {
-            this.articleFavoriteRepository.findByArticleIdAndUserId(article.getId(), user.getId())
-                    .ifPresent(articleFavorite -> {
-                        this.articleFavoriteRepository.delete(articleFavorite);
-                        this.articleRepository.decrementFavoriteCountById(article.getId());
-                        this.logger.info("게시물 리액션 발생 - " + request);
-                    });
+            if (oldFavorite.isPresent()) {
+                this.articleFavoriteRepository.delete(oldFavorite.get());
+                this.articleRepository.decrementFavoriteCountById(article.getId());
+                this.logger.info("게시물 리액션 발생 - " + request);
+            }
         }
 
         response.setStatus(ReactArticleAppResponseStatus.SUCCESS);
         response.setFavorite(request.isFavorite());
+        return response;
+    }
+
+    public SearchArticleAppResponse search(SearchArticleAppRequest request) {
+        SearchArticleAppResponse response = new SearchArticleAppResponse();
+        List<SearchArticleRepoRequestFilter> repoFilters = request.getFilters().stream()
+                .map(filter -> SearchArticleRepoRequestFilter.builder()
+                        .username(filter.getUsername())
+                        .titleLike(filter.getTitleLike())
+                        .minLevel(filter.getMinLevel())
+                        .maxLevel(filter.getMaxLevel())
+                        .minAngle(filter.getMinAngle())
+                        .maxAngle(filter.getMaxAngle())
+                        .minDateTime(filter.getMinDateTime())
+                        .maxDateTime(filter.getMaxDateTime())
+                        .statusIn(filter.getStatusIn())
+                        .build())
+                .toList();
+        SearchArticleRepoRequestOrder repoOrder = switch (request.getOrder()) {
+            case OLD -> SearchArticleRepoRequestOrder.OLD;
+            case VIEW -> SearchArticleRepoRequestOrder.VIEW;
+            case POPULAR -> SearchArticleRepoRequestOrder.POPULAR;
+            case HARD -> SearchArticleRepoRequestOrder.HARD;
+            case EASY -> SearchArticleRepoRequestOrder.EASY;
+            default -> SearchArticleRepoRequestOrder.NEW;
+        };
+        SearchArticleRepoPageToken repoPageToken = new SearchArticleRepoPageToken(request.getPageToken());
+
+        List<Article> articles = this.articleRepository.search(repoFilters, repoOrder, repoPageToken, SEARCH_LIMIT);
+        response.setArticles(articles.stream().map(article -> {
+            SearchArticleAppResponseItem item = new SearchArticleAppResponseItem();
+            item.setId(article.getId());
+            item.setUsername(article.getUser().getUsername());
+            item.setVideo(VideoApplicationUtil.createFindVideoAppResponse(article.getVideo()));
+            item.setTitle(article.getTitle());
+            item.setDescription(article.getDescription());
+            item.setLevel(article.getLevel());
+            item.setAngle(article.getAngle());
+            item.setViewCount(article.getViewCount());
+            item.setFavoriteCount(article.getFavoriteCount());
+            item.setRegisterDateTime(article.getRegisterDateTime());
+            return item;
+        }).toList());
+        response.setNextPageToken(this.articleRepository.createNextPageToken(articles).encode());
         return response;
     }
 }

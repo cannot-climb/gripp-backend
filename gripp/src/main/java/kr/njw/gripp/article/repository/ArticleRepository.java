@@ -10,7 +10,7 @@ import javax.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 
-public interface ArticleRepository extends JpaRepository<Article, Long> {
+public interface ArticleRepository extends JpaRepository<Article, Long>, ArticleRepositoryCustom {
     boolean existsByVideoId(Long id);
 
     @Override

@@ -1,6 +1,7 @@
 buildscript {
     ext {
         queryDslVersion = '5.0.0'
+        tikaVersion = '2.5.0'
     }
 }
 
@@ -37,8 +38,8 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
     implementation 'me.paulschwarz:spring-dotenv:2.5.4'
     implementation 'commons-io:commons-io:2.11.0'
-    implementation 'org.apache.tika:tika-core:2.4.1'
-    implementation 'org.apache.tika:tika-parsers-standard-package:2.4.1'
+    implementation "org.apache.tika:tika-core:${tikaVersion}"
+    implementation "org.apache.tika:tika-parsers-standard-package:${tikaVersion}"
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.8.1'
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     compileOnly 'org.projectlombok:lombok'
@@ -66,7 +67,11 @@ querydsl {
 }
 
 sourceSets {
-    main.java.srcDir "${buildDir}/generated/querydsl"
+    main {
+        java {
+            srcDir "${buildDir}/generated/querydsl"
+        }
+    }
 }
 
 configurations {

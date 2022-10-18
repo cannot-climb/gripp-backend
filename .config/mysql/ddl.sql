@@ -34,6 +34,9 @@ CREATE TABLE `article` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `article_video_id_UNIQUE` (`video_id`),
   KEY `article_user_id_idx` (`user_id`),
+  KEY `article_level_idx` (`level`),
+  KEY `article_angle_idx` (`angle`),
+  KEY `article_register_date_time_idx` (`register_date_time`),
   CONSTRAINT `article_user_id_FK` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `article_video_id_FK` FOREIGN KEY (`video_id`) REFERENCES `video` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

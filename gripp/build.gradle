@@ -1,6 +1,13 @@
+buildscript {
+    ext {
+        queryDslVersion = '5.0.0'
+    }
+}
+
 plugins {
     id 'org.springframework.boot' version '2.7.3'
     id 'io.spring.dependency-management' version '1.0.13.RELEASE'
+    id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
     id 'java'
 }
 
@@ -33,11 +40,13 @@ dependencies {
     implementation 'org.apache.tika:tika-core:2.4.1'
     implementation 'org.apache.tika:tika-parsers-standard-package:2.4.1'
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.8.1'
+    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'mysql:mysql-connector-java'
     annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.amqp:spring-rabbit-test'
     testImplementation 'org.springframework.security:spring-security-test'
@@ -49,4 +58,21 @@ tasks.named('test') {
 
 tasks.named('jar') {
     enabled = false
+}
+
+querydsl {
+    jpa = true
+    querydslSourcesDir = "${buildDir}/generated/querydsl"
+}
+
+sourceSets {
+    main.java.srcDir "${buildDir}/generated/querydsl"
+}
+
+configurations {
+    querydsl.extendsFrom compileClasspath
+}
+
+compileQuerydsl {
+    options.annotationProcessorPath = configurations.querydsl
 }

@@ -58,7 +58,7 @@ public class UserApplicationImpl implements UserApplication {
         response.setSuccess(true);
 
         try (Stream<User> users = this.userRepository.findByOrderByScoreDesc()) {
-            long rankEnd = this.userRepository.countByScoreGreaterThan(0) + 1;
+            long rankEnd = this.getRankEnd();
             AtomicLong fetchedUserCount = new AtomicLong(0);
             AtomicLong lastRank = new AtomicLong(0);
             AtomicInteger lastScore = new AtomicInteger(Integer.MAX_VALUE);
@@ -100,10 +100,8 @@ public class UserApplicationImpl implements UserApplication {
                             defaultBoardTopQueue.remove();
                         }
                     } else {
-                        if (defaultBoardBottomRemainSize.get() > 0) {
-                            response.getDefaultBoard().add(this.createFindUserAppResponse(aUser, rank, rankEnd));
-                            defaultBoardBottomRemainSize.getAndDecrement();
-                        }
+                        response.getDefaultBoard().add(this.createFindUserAppResponse(aUser, rank, rankEnd));
+                        defaultBoardBottomRemainSize.getAndDecrement();
                     }
 
                     // 메모리 초과 방지
@@ -119,9 +117,8 @@ public class UserApplicationImpl implements UserApplication {
         return this.userRepository.countByScoreGreaterThan(user.getScore()) + 1;
     }
 
-    private int getPercentile(long rank) {
-        long rankEnd = this.userRepository.countByScoreGreaterThan(0) + 1;
-        return this.getPercentile(rank, rankEnd);
+    private long getRankEnd() {
+        return this.userRepository.countByScoreGreaterThan(0) + 1;
     }
 
     private int getPercentile(long rank, long rankEnd) {
@@ -133,9 +130,7 @@ public class UserApplicationImpl implements UserApplication {
     }
 
     private FindUserAppResponse createFindUserAppResponse(User user) {
-        long rank = this.getRank(user);
-        int percentile = this.getPercentile(rank);
-        return this.createFindUserAppResponse(user, rank, percentile);
+        return this.createFindUserAppResponse(user, this.getRank(user), this.getRankEnd());
     }
 
     private FindUserAppResponse createFindUserAppResponse(User user, long rank, long rankEnd) {

@@ -10,6 +10,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.13.RELEASE'
     id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
     id 'java'
+    id 'jacoco'
 }
 
 group = 'kr.njw'
@@ -55,6 +56,7 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy 'jacocoTestReport'
 }
 
 tasks.named('jar') {
@@ -80,4 +82,31 @@ configurations {
 
 compileQuerydsl {
     options.annotationProcessorPath = configurations.querydsl
+}
+
+jacoco {
+    toolVersion = '0.8.8'
+}
+
+jacocoTestReport {
+    reports {
+        html.enabled true
+        csv.enabled true
+        xml.enabled true
+    }
+
+    def exclude = [
+            "**/GrippApplication.class",
+            "**/*Config.class"
+    ]
+
+    for (qPattern in "**/QA".."**/QZ") {
+        exclude.add(qPattern + "*")
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: exclude)
+        }))
+    }
 }

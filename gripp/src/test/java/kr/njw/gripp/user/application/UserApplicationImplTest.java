@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserApplicationImplTest {
@@ -59,26 +59,23 @@ class UserApplicationImplTest {
                 .registerDateTime(this.now)
                 .build();
 
-        assert user != null;
-        assert user2 != null;
-
-        when(this.userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
-        when(this.userRepository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
-        when(this.userRepository.findByUsername(user2.getUsername())).thenReturn(Optional.of(user2));
-        when(this.userRepository.countByScoreGreaterThan(0)).thenReturn(100L);
-        when(this.userRepository.countByScoreGreaterThan(user.getScore())).thenReturn(10L);
-        when(this.userRepository.countByScoreGreaterThan(user2.getScore())).thenReturn(150L);
+        given(this.userRepository.findByUsername(anyString())).willReturn(Optional.empty());
+        given(this.userRepository.findByUsername(user.getUsername())).willReturn(Optional.of(user));
+        given(this.userRepository.findByUsername(user2.getUsername())).willReturn(Optional.of(user2));
+        given(this.userRepository.countByScoreGreaterThan(0)).willReturn(100L);
+        given(this.userRepository.countByScoreGreaterThan(user.getScore())).willReturn(10L);
+        given(this.userRepository.countByScoreGreaterThan(user2.getScore())).willReturn(150L);
 
         FindUserAppResponse test = this.userApplicationImpl.findUser(user.getUsername());
         FindUserAppResponse test2 = this.userApplicationImpl.findUser(user2.getUsername());
         FindUserAppResponse test3 = this.userApplicationImpl.findUser("test3");
 
-        verify(this.userRepository, times(1)).findByUsername(user.getUsername());
-        verify(this.userRepository, times(1)).findByUsername(user2.getUsername());
-        verify(this.userRepository, times(1)).findByUsername("test3");
-        verify(this.userRepository, times(2)).countByScoreGreaterThan(0);
-        verify(this.userRepository, times(1)).countByScoreGreaterThan(user.getScore());
-        verify(this.userRepository, times(1)).countByScoreGreaterThan(user2.getScore());
+        then(this.userRepository).should(times(1)).findByUsername(user.getUsername());
+        then(this.userRepository).should(times(1)).findByUsername(user2.getUsername());
+        then(this.userRepository).should(times(1)).findByUsername("test3");
+        then(this.userRepository).should(times(2)).countByScoreGreaterThan(0);
+        then(this.userRepository).should(times(1)).countByScoreGreaterThan(user.getScore());
+        then(this.userRepository).should(times(1)).countByScoreGreaterThan(user2.getScore());
 
         assertThat(test.isSuccess()).isTrue();
         assertThat(test.getUsername()).hasValue(user.getUsername());
@@ -115,11 +112,11 @@ class UserApplicationImplTest {
                     .build());
         }
 
-        when(this.userRepository.countByScoreGreaterThan(0)).thenReturn(USER_COUNT);
-        when(this.userRepository.findByUsername(anyString())).thenAnswer(invocation -> users.stream()
+        given(this.userRepository.countByScoreGreaterThan(0)).willReturn(USER_COUNT);
+        given(this.userRepository.findByUsername(anyString())).willAnswer(invocation -> users.stream()
                 .filter(user -> user.getUsername().equals(invocation.getArgument(0)))
                 .findFirst());
-        when(this.userRepository.findByOrderByScoreDesc()).thenAnswer(invocation -> users.stream());
+        given(this.userRepository.findByOrderByScoreDesc()).willAnswer(invocation -> users.stream());
 
         FindLeaderBoardAppResponse test = this.userApplicationImpl.findLeaderBoard("test0");
         FindLeaderBoardAppResponse test2 = this.userApplicationImpl.findLeaderBoard("test10");

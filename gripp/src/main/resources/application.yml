@@ -68,9 +68,6 @@ management:
     health:
       show-details: always
 
-.env:
-  ignoreIfMissing: false
-
 decorator:
   datasource:
     p6spy:

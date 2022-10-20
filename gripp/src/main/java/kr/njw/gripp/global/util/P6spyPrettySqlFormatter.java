@@ -14,7 +14,7 @@ public class P6spyPrettySqlFormatter implements MessageFormattingStrategy {
     }
 
     private String formatSql(String category, String sql) {
-        if (sql == null || sql.trim().equals("")) return sql;
+        if (sql == null || sql.trim().equals("")) return "";
 
         if (Category.STATEMENT.getName().equals(category)) {
             String tmpsql = sql.trim().toLowerCase(Locale.ROOT);

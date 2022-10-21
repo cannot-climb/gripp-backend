@@ -47,12 +47,13 @@ public class JwtAuthenticationProvider {
         }
 
         Claims claims = this.getClaims(token);
-        Collection<? extends GrantedAuthority> authorities = this.getAuthorities(claims);
-        UserDetails userDetails = new User(claims.getSubject(), "", authorities);
 
         if (StringUtils.isBlank(claims.getSubject())) {
             return Optional.empty();
         }
+
+        Collection<? extends GrantedAuthority> authorities = this.getAuthorities(claims);
+        UserDetails userDetails = new User(claims.getSubject(), "", authorities);
 
         return Optional.of(new UsernamePasswordAuthenticationToken(userDetails, "", authorities));
     }

@@ -7,13 +7,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.njw.gripp.download.application.DownloadResourceFactory;
 import kr.njw.gripp.global.config.GrippConfig;
 import kr.njw.gripp.global.dto.ErrorResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequestMapping("/download")
 public class DownloadController {
+    private final DownloadResourceFactory downloadResourceFactory;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Operation(summary = "다운로드", description = """
@@ -52,7 +53,7 @@ public class DownloadController {
     @GetMapping(value = "/{fileName}")
     public ResponseEntity<?> download(@PathVariable("fileName") String fileName) {
         Path path = Paths.get(GrippConfig.FILE_UPLOAD_PATH, FilenameUtils.getName(fileName));
-        Resource resource = new FileSystemResource(path);
+        Resource resource = this.downloadResourceFactory.createResource(path);
         HttpHeaders headers = new HttpHeaders();
 
         if (!resource.exists()) {

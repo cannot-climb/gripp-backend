@@ -5,12 +5,12 @@ import kr.njw.gripp.auth.entity.Account;
 import kr.njw.gripp.auth.entity.AccountToken;
 import kr.njw.gripp.auth.repository.AccountRepository;
 import kr.njw.gripp.auth.repository.AccountTokenRepository;
-import kr.njw.gripp.auth.util.PasswordUtil;
 import kr.njw.gripp.global.auth.JwtAuthenticationProvider;
 import kr.njw.gripp.global.auth.Role;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +23,7 @@ import java.util.Optional;
 public class AccountApplicationImpl implements AccountApplication {
     private final AccountRepository accountRepository;
     private final AccountTokenRepository accountTokenRepository;
-    private final PasswordUtil passwordUtil;
+    private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -36,7 +36,7 @@ public class AccountApplicationImpl implements AccountApplication {
 
         Account account = Account.builder()
                 .username(request.getUsername())
-                .password(this.passwordUtil.encryptPassword(request.getPassword()))
+                .password(this.passwordEncoder.encode(request.getPassword()))
                 .registerDateTime(LocalDateTime.now())
                 .build();
 
@@ -48,8 +48,7 @@ public class AccountApplicationImpl implements AccountApplication {
     public LoginAppResponse login(LoginAppRequest request) {
         Optional<Account> account = this.accountRepository.findByUsername(request.getUsername());
 
-        if (account.isEmpty() ||
-                !this.passwordUtil.verifyPassword(request.getPassword(), account.get().getPassword())) {
+        if (account.isEmpty() || !this.passwordEncoder.matches(request.getPassword(), account.get().getPassword())) {
             LoginAppResponse response = new LoginAppResponse();
             response.setSuccess(false);
             return response;

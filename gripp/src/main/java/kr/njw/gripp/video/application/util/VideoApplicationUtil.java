@@ -3,8 +3,8 @@ package kr.njw.gripp.video.application.util;
 import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.entity.Video;
 
-public class VideoApplicationUtil {
-    public static FindVideoAppResponse createFindVideoAppResponse(Video video) {
+public interface VideoApplicationUtil {
+    static FindVideoAppResponse createFindVideoAppResponse(Video video) {
         FindVideoAppResponse response = new FindVideoAppResponse();
         response.setSuccess(true);
         response.setUuid(video.getUuid());

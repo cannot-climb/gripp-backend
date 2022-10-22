@@ -56,6 +56,8 @@ public class VideoApplicationImpl implements VideoApplication {
     private final UserRepository userRepository;
     private final VideoRepository videoRepository;
     private final AmqpTemplate amqpTemplate;
+    private final Tika tika;
+    private final MP4Parser mp4Parser;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Transactional(rollbackFor = Exception.class)
@@ -73,7 +75,7 @@ public class VideoApplicationImpl implements VideoApplication {
         }
 
         try (InputStream inputStream = file.getInputStream()) {
-            String mimeType = new Tika().detect(inputStream);
+            String mimeType = this.tika.detect(inputStream);
 
             if (!mimeType.toLowerCase().matches(MIME_TYPE_PATTERN)) {
                 UploadVideoAppResponse response = new UploadVideoAppResponse();
@@ -85,12 +87,11 @@ public class VideoApplicationImpl implements VideoApplication {
         }
 
         try (InputStream inputStream = file.getInputStream()) {
-            MP4Parser mp4Parser = new MP4Parser();
             BodyContentHandler bodyContentHandler = new BodyContentHandler();
             Metadata metadata = new Metadata();
             ParseContext parseContext = new ParseContext();
 
-            mp4Parser.parse(inputStream, bodyContentHandler, metadata, parseContext);
+            this.mp4Parser.parse(inputStream, bodyContentHandler, metadata, parseContext);
             String duration = metadata.get(XMPDM.DURATION);
             this.logger.info("영상 메타데이터 추출 완료 - " + originalFileName + ", " + metadata);
 
@@ -194,13 +195,13 @@ public class VideoApplicationImpl implements VideoApplication {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    private static class VideoProcessorRequest {
+    public static class VideoProcessorRequest {
         private String uuid;
         private String fileName;
     }
 
     @Data
-    private static class VideoProcessorResponse {
+    public static class VideoProcessorResponse {
         private VideoProcessorRequest request;
         private String streamingUrl;
         private int streamingLength;

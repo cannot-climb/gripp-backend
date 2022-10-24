@@ -55,9 +55,7 @@ public class AccountApplicationImpl implements AccountApplication {
         }
 
         AccountToken accountToken = this.accountTokenRepository.findByAccount(account.get())
-                .orElse(AccountToken.builder()
-                        .account(account.get())
-                        .build());
+                .orElse(AccountToken.builder().account(account.get()).build());
 
         accountToken.issue();
         this.accountTokenRepository.save(accountToken);

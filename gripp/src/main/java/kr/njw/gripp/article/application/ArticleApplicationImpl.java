@@ -148,6 +148,32 @@ public class ArticleApplicationImpl implements ArticleApplication {
     }
 
     @Transactional
+    public EditArticleAppResponse edit(EditArticleAppRequest request) {
+        EditArticleAppResponse response = new EditArticleAppResponse();
+        Article article = this.articleRepository.findWithoutJoinForUpdateById(request.getArticleId()).orElse(null);
+
+        if (article == null) {
+            response.setStatus(EditArticleAppResponseStatus.NO_ARTICLE);
+            this.logger.warn("게시물이 없습니다 - " + request);
+            return response;
+        }
+
+        User user = article.getUser();
+
+        if (user == null || !user.getUsername().equals(request.getUsername())) {
+            response.setStatus(EditArticleAppResponseStatus.FORBIDDEN);
+            this.logger.warn("잘못된 유저입니다 - " + request + ", " + user);
+            return response;
+        }
+
+        article.edit(request.getTitle(), request.getDescription());
+        this.articleRepository.save(article);
+
+        response.setStatus(EditArticleAppResponseStatus.SUCCESS);
+        return response;
+    }
+
+    @Transactional
     public DeleteArticleAppResponse delete(DeleteArticleAppRequest request) {
         DeleteArticleAppResponse response = new DeleteArticleAppResponse();
         Article article = this.articleRepository.findForUpdateById(request.getArticleId()).orElse(null);

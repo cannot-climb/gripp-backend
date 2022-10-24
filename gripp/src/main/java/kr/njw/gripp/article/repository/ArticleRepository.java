@@ -21,6 +21,9 @@ public interface ArticleRepository extends JpaRepository<Article, Long>, Article
     @EntityGraph(attributePaths = {"user", "video"}, type = EntityGraph.EntityGraphType.LOAD)
     Optional<Article> findForUpdateById(Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<Article> findWithoutJoinForUpdateById(Long id);
+
     @Lock(LockModeType.PESSIMISTIC_READ)
     @EntityGraph(attributePaths = {"user", "video"}, type = EntityGraph.EntityGraphType.LOAD)
     Optional<Article> findForShareByVideoId(Long videoId);

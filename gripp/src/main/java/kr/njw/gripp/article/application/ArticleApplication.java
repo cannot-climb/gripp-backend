@@ -9,6 +9,8 @@ public interface ArticleApplication {
 
     WriteArticleAppResponse write(WriteArticleAppRequest request);
 
+    EditArticleAppResponse edit(EditArticleAppRequest request);
+
     DeleteArticleAppResponse delete(DeleteArticleAppRequest request);
 
     ReactArticleAppResponse react(ReactArticleAppRequest request);

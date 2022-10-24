@@ -141,6 +141,64 @@ public class ArticleController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "게시물 수정", description = """
+            게시물 수정 API
+
+            제목, 설명만 변경 가능""")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "수정 완료",
+                    content = @Content(schema = @Schema(implementation = EditArticleResponse.class))),
+            @ApiResponse(responseCode = "400", description = "수정 실패 (Bad Request) / ex: 입력 제약 조건에 맞지 않는 경우",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "수정 실패 (Unauthorized)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "수정 실패 (Forbidden) / ex: 자신의 게시물이 아닌 경우",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "수정 실패 (Not Found) / ex: 게시물이 존재하지 않는 경우",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    @PatchMapping("/{articleId}")
+    public ResponseEntity<?> editArticle(
+            @Parameter(description = "게시물 아이디", example = "42") @PathVariable("articleId") String articleId,
+            @Valid @RequestBody EditArticleRequest request,
+            Principal principal) {
+        EditArticleAppRequest appRequest = new EditArticleAppRequest();
+
+        try {
+            appRequest.setUsername(principal.getName());
+            appRequest.setArticleId(Long.parseLong(articleId));
+            appRequest.setTitle(request.getTitle());
+            appRequest.setDescription(request.getDescription());
+        } catch (NumberFormatException e) {
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.setErrors(List.of("invalid article"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+
+        EditArticleAppResponse appResponse = this.articleApplication.edit(appRequest);
+
+        if (appResponse.getStatus() != EditArticleAppResponseStatus.SUCCESS) {
+            ErrorResponse errorResponse = new ErrorResponse();
+
+            switch (appResponse.getStatus()) {
+                case NO_ARTICLE -> {
+                    errorResponse.setErrors(List.of("invalid article"));
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+                }
+                case FORBIDDEN -> {
+                    errorResponse.setErrors(List.of("forbidden operation"));
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+                }
+            }
+        }
+
+        EditArticleResponse response = new EditArticleResponse();
+        response.setArticleId(String.valueOf(Long.parseLong(articleId)));
+        response.setTitle(request.getTitle());
+        response.setDescription(request.getDescription());
+        return ResponseEntity.ok(response);
+    }
+
     @Operation(summary = "게시물 삭제", description = """
             게시물 삭제 API
 

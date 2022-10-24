@@ -40,4 +40,9 @@ public class Article {
     private long favoriteCount;
     @Column(nullable = false)
     private LocalDateTime registerDateTime;
+
+    public void edit(String title, String description) {
+        this.title = title;
+        this.description = description;
+    }
 }

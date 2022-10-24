@@ -177,26 +177,25 @@ public class ArticleController {
 
         EditArticleAppResponse appResponse = this.articleApplication.edit(appRequest);
 
-        if (appResponse.getStatus() != EditArticleAppResponseStatus.SUCCESS) {
-            ErrorResponse errorResponse = new ErrorResponse();
-
-            switch (appResponse.getStatus()) {
-                case NO_ARTICLE -> {
-                    errorResponse.setErrors(List.of("invalid article"));
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-                }
-                case FORBIDDEN -> {
-                    errorResponse.setErrors(List.of("forbidden operation"));
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
-                }
+        return switch (appResponse.getStatus()) {
+            case SUCCESS -> {
+                EditArticleResponse response = new EditArticleResponse();
+                response.setArticleId(String.valueOf(Long.parseLong(articleId)));
+                response.setTitle(request.getTitle());
+                response.setDescription(request.getDescription());
+                yield ResponseEntity.ok(response);
             }
-        }
-
-        EditArticleResponse response = new EditArticleResponse();
-        response.setArticleId(String.valueOf(Long.parseLong(articleId)));
-        response.setTitle(request.getTitle());
-        response.setDescription(request.getDescription());
-        return ResponseEntity.ok(response);
+            case NO_ARTICLE -> {
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setErrors(List.of("invalid article"));
+                yield ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            }
+            case FORBIDDEN -> {
+                ErrorResponse errorResponse = new ErrorResponse();
+                errorResponse.setErrors(List.of("forbidden operation"));
+                yield ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+            }
+        };
     }
 
     @Operation(summary = "게시물 삭제", description = """

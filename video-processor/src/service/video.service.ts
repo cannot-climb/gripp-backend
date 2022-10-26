@@ -5,6 +5,7 @@ import execa from 'execa';
 import fs from 'fs';
 import mime from 'mime-types';
 import path from 'path';
+import urlJoin from 'url-join';
 import { MakeStreamResponse } from './dto/make-stream.dto';
 
 @Injectable()
@@ -13,9 +14,14 @@ export class VideoService {
   private readonly MEDIUM_RES = 480;
   private readonly HLS_MASTER_FILE_NAME = 'master.m3u8';
   private readonly HLS_THUMBNAIL_FILE_NAME = 'thumbnail.png';
-  private readonly GRIPP_DOWNLOAD_API = 'https://gripp.dev.njw.kr/download';
-  private readonly GRIPP_DEEP_API =
-    'http://gripp.wonbeomjang.kr/kilterboard/upload';
+  private readonly GRIPP_DOWNLOAD_API = urlJoin(
+    String(process.env.GRIPP_MAIN_API_ENDPOINT),
+    'download',
+  );
+  private readonly GRIPP_PREDICT_API = urlJoin(
+    String(process.env.GRIPP_DEEP_API_ENDPOINT),
+    'kilterboard/upload',
+  );
   private readonly s3 = new AWS.S3({
     credentials: {
       accessKeyId: `${process.env.GRIPP_AWS_ACCESS_KEY}`,
@@ -50,7 +56,7 @@ export class VideoService {
       await wget;
 
       const deepNetworkResponse = await axios.post(
-        this.GRIPP_DEEP_API,
+        this.GRIPP_PREDICT_API,
         {
           videoUrl: `${this.GRIPP_DOWNLOAD_API}/${fileName}`,
         },

@@ -34,6 +34,8 @@ jobs:
       - name: Make video-processor envfile
         uses: SpicyPizza/create-envfile@v1.3
         with:
+          envkey_GRIPP_MAIN_API_ENDPOINT: ${{ secrets.GRIPP_MAIN_API_ENDPOINT }}
+          envkey_GRIPP_DEEP_API_ENDPOINT: ${{ secrets.GRIPP_DEEP_API_ENDPOINT }}
           envkey_GRIPP_RABBITMQ_ADDRESS: ${{ secrets.GRIPP_RABBITMQ_ADDRESS }}
           envkey_GRIPP_ADMIN_NAME: ${{ secrets.GRIPP_ADMIN_NAME }}
           envkey_GRIPP_ADMIN_PASSWORD_RAW: ${{ secrets.GRIPP_ADMIN_PASSWORD_RAW }}

@@ -1,0 +1,12 @@
+.version {
+  display: none;
+}
+
+pre,
+textarea {
+  width: 100%;
+  font: unset;
+  font-size: 100%;
+  line-height: 1.25;
+  box-sizing: border-box;
+}

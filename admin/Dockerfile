@@ -1,3 +1,5 @@
 FROM chialab/php:7.4-apache
 EXPOSE 80
-COPY src/ /var/www/html/
+COPY .env /var/www/
+COPY vendor/ /var/www/vendor/
+COPY public/ /var/www/html/

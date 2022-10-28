@@ -1,5 +1,5 @@
 <?php
-define('ROOT_DIR', dirname(__DIR__));
+define('ROOT_DIR', dirname(dirname(__DIR__)));
 require_once ROOT_DIR . '/vendor/dotenv/Processor/IProcessor.php';
 require_once ROOT_DIR . '/vendor/dotenv/Processor/AbstractProcessor.php';
 require_once ROOT_DIR . '/vendor/dotenv/Processor/BooleanProcessor.php';

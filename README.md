@@ -12,6 +12,12 @@
 
 - require an admin username and password
 
+## ⚙️ Admin Tool
+
+**https://gripp.dev.njw.kr/admin**
+
+- require an admin username and password
+
 ## 🏗️ ERD
 
 ![ERD](docs/erd.png)

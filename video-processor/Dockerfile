@@ -1,6 +1,6 @@
 FROM node:16-bullseye
 WORKDIR /ffmpeg
-RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-$(dpkg --print-architecture)-static.tar.xz -O ffmpeg.tar.xz
+RUN wget https://github.com/cannot-climb/gripp-ffmpeg/raw/master/5.1.1/ffmpeg-release-$(dpkg --print-architecture)-static.tar.xz -O ffmpeg.tar.xz
 RUN ["tar", "Jxvf", "ffmpeg.tar.xz", "--strip-components", "1"]
 RUN ["rm", "ffmpeg.tar.xz"]
 RUN ["ln", "-s", "/ffmpeg/ffmpeg", "/usr/local/bin/ffmpeg"]

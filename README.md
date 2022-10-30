@@ -18,6 +18,12 @@
 
 - require an admin username and password
 
+## 📊 Grafana
+
+**https://gripp.dev.njw.kr/grafana**
+
+- require an admin username and password
+
 ## 🏗️ ERD
 
 ![ERD](docs/erd.png)

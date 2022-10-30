@@ -76,6 +76,7 @@ jobs:
         uses: SpicyPizza/create-envfile@v1.3
         with:
           envkey_GRIPP_GRAFANA_DOMAIN: ${{ secrets.GRIPP_GRAFANA_DOMAIN }}
+          envkey_GRIPP_GRAFANA_ROOT_URL: ${{ secrets.GRIPP_GRAFANA_ROOT_URL }}
           envkey_GRIPP_GRAFANA_DEFAULT_USER: ${{ secrets.GRIPP_GRAFANA_DEFAULT_USER }}
           envkey_GRIPP_GRAFANA_DEFAULT_PASSWORD: ${{ secrets.GRIPP_GRAFANA_DEFAULT_PASSWORD }}
           file_name: .env

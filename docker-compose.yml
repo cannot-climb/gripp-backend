@@ -50,14 +50,18 @@ services:
         max-file: "3"
     restart: "unless-stopped"
   grafana:
-    build: "grafana"
+    image: "grafana/grafana:7.5.17"
     ports:
       - "127.0.0.1:8083:3000"
     volumes:
       - gripp-grafana:/var/lib/grafana
     environment:
-      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:%(http_port)s/grafana/
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      GF_SECURITY_ADMIN_USER: "${GRIPP_GRAFANA_DEFAULT_USER-:admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRIPP_GRAFANA_DEFAULT_PASSWORD-:admin}"
+      GF_SERVER_DOMAIN: "${GRIPP_GRAFANA_DOMAIN:-localhost}"
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: true
+      GF_AUTH_BASIC_ENABLED: false
     logging:
       driver: "json-file"
       options:

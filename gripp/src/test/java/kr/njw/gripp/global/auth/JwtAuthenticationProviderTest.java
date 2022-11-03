@@ -36,8 +36,9 @@ class JwtAuthenticationProviderTest {
         Claims body = Jwts.parser().setSigningKey(SECRET_BYTES).parseClaimsJws(token).getBody();
 
         assertThat(body.getSubject()).isEqualTo("test");
-        assertThat(body.getExpiration().getTime() - body.getIssuedAt().getTime()).isEqualTo(60 * 60 * 1000);
-        assertThat(body.getExpiration().getTime() - new Date().getTime()).isCloseTo(60 * 60 * 1000, within(5000L));
+        assertThat(body.getExpiration().getTime() - body.getIssuedAt().getTime()).isEqualTo(1000L * 60 * 60 * 24 * 30);
+        assertThat(body.getExpiration().getTime() - new Date().getTime()).isCloseTo(1000L * 60 * 60 * 24 * 30,
+                within(5000L));
         assertThat(body.get("authorities")).isInstanceOf(List.class);
         assertThat(((List<?>) body.get("authorities")).stream().map(Object::toString).toList()).contains(
                 Role.USER.toAuthority(), Role.ADMIN.toAuthority());

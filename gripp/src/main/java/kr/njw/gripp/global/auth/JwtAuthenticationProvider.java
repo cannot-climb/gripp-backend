@@ -18,7 +18,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationProvider {
-    public static final long TOKEN_VALID_TIME_MS = 60 * 60 * 1000;
+    // TODO: 유효시간 60분으로 변경
+    public static final long TOKEN_VALID_TIME_MS = 1000L * 60 * 60 * 24 * 30;
     private static final String AUTHORITIES_KEY = "authorities";
 
     private final String secret;

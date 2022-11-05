@@ -374,53 +374,146 @@ class ArticleApplicationImplTest {
                 .user(User.builder().username("me").build())
                 .build());
 
-        EditArticleAppRequest request = new EditArticleAppRequest();
-        request.setArticleId(1L);
-        request.setUsername(article.getUser().getUsername());
-        request.setTitle("hello");
-        request.setDescription("world");
+        EditArticleAppRequest requestNoArticle = new EditArticleAppRequest();
+        requestNoArticle.setArticleId(1L);
+        requestNoArticle.setUsername(article.getUser().getUsername());
+        requestNoArticle.setTitle("hello");
+        requestNoArticle.setDescription("world");
 
-        EditArticleAppRequest request2 = new EditArticleAppRequest();
-        request2.setArticleId(article.getId());
-        request2.setUsername("no");
-        request2.setTitle("hello2");
-        request2.setDescription("world2");
+        EditArticleAppRequest requestNotAuthor = new EditArticleAppRequest();
+        requestNotAuthor.setArticleId(article.getId());
+        requestNotAuthor.setUsername("no");
+        requestNotAuthor.setTitle("hello2");
+        requestNotAuthor.setDescription("world2");
 
-        EditArticleAppRequest request3 = new EditArticleAppRequest();
-        request3.setArticleId(404L);
-        request3.setUsername(article.getUser().getUsername());
-        request3.setTitle("hello2");
-        request3.setDescription("world2");
+        EditArticleAppRequest requestNoAuthorArticle = new EditArticleAppRequest();
+        requestNoAuthorArticle.setArticleId(404L);
+        requestNoAuthorArticle.setUsername(article.getUser().getUsername());
+        requestNoAuthorArticle.setTitle("hello2");
+        requestNoAuthorArticle.setDescription("world2");
 
-        EditArticleAppRequest request4 = new EditArticleAppRequest();
-        request4.setArticleId(article.getId());
-        request4.setUsername(article.getUser().getUsername());
-        request4.setTitle("hello3");
-        request4.setDescription("world3");
+        EditArticleAppRequest requestOk = new EditArticleAppRequest();
+        requestOk.setArticleId(article.getId());
+        requestOk.setUsername(article.getUser().getUsername());
+        requestOk.setTitle("hello3");
+        requestOk.setDescription("world3");
 
         given(this.articleRepository.findWithoutJoinForUpdateById(any())).willReturn(Optional.empty());
-        given(this.articleRepository.findWithoutJoinForUpdateById(404L)).willReturn(
-                Optional.of(Article.builder().build()));
+        given(this.articleRepository.findWithoutJoinForUpdateById(requestNoAuthorArticle.getArticleId()))
+                .willReturn(Optional.of(Article.builder().build()));
         given(this.articleRepository.findWithoutJoinForUpdateById(article.getId())).willReturn(Optional.of(article));
 
-        EditArticleAppResponse response = this.articleApplicationImpl.edit(request);
-        EditArticleAppResponse response2 = this.articleApplicationImpl.edit(request2);
-        EditArticleAppResponse response3 = this.articleApplicationImpl.edit(request3);
-        EditArticleAppResponse response4 = this.articleApplicationImpl.edit(request4);
+        EditArticleAppResponse responseNoArticle = this.articleApplicationImpl.edit(requestNoArticle);
+        EditArticleAppResponse responseNotAuthor = this.articleApplicationImpl.edit(requestNotAuthor);
+        EditArticleAppResponse responseNoAuthorArticle = this.articleApplicationImpl.edit(requestNoAuthorArticle);
+        EditArticleAppResponse responseOk = this.articleApplicationImpl.edit(requestOk);
 
         then(article).should(times(1)).edit(any(), any());
-        then(article).should(times(1)).edit(request4.getTitle(), request4.getDescription());
+        then(article).should(times(1)).edit(requestOk.getTitle(), requestOk.getDescription());
         then(this.articleRepository).should(times(1)).save(any());
         then(this.articleRepository).should(times(1)).save(article);
 
-        assertThat(response.getStatus()).isEqualTo(EditArticleAppResponseStatus.NO_ARTICLE);
-        assertThat(response2.getStatus()).isEqualTo(EditArticleAppResponseStatus.FORBIDDEN);
-        assertThat(response3.getStatus()).isEqualTo(EditArticleAppResponseStatus.FORBIDDEN);
-        assertThat(response4.getStatus()).isEqualTo(EditArticleAppResponseStatus.SUCCESS);
+        assertThat(responseNoArticle.getStatus()).isEqualTo(EditArticleAppResponseStatus.NO_ARTICLE);
+        assertThat(responseNotAuthor.getStatus()).isEqualTo(EditArticleAppResponseStatus.FORBIDDEN);
+        assertThat(responseNoAuthorArticle.getStatus()).isEqualTo(EditArticleAppResponseStatus.FORBIDDEN);
+        assertThat(responseOk.getStatus()).isEqualTo(EditArticleAppResponseStatus.SUCCESS);
     }
 
     @Test
     void delete() {
+        User author = User.builder().username("me").build();
+
+        Video videoWithPreprocessing = Video.builder().uuid("test").status(VideoStatus.PREPROCESSING).build();
+        Video videoWithNoCertified = Video.builder().uuid("test2").status(VideoStatus.NO_CERTIFIED).build();
+        Video videoWithCertified = Video.builder().uuid("test3").status(VideoStatus.CERTIFIED).build();
+
+        Article articleWithPreprocessing = Article.builder()
+                .id(42L)
+                .title("title")
+                .description("description")
+                .user(author)
+                .video(videoWithPreprocessing)
+                .build();
+
+        Article articleWithNoCertified = Article.builder()
+                .id(43L)
+                .title("title")
+                .description("description")
+                .user(author)
+                .video(videoWithNoCertified)
+                .build();
+
+        Article articleWithCertified = Article.builder()
+                .id(44L)
+                .title("title")
+                .description("description")
+                .user(author)
+                .video(videoWithCertified)
+                .build();
+
+        DeleteArticleAppRequest requestNoArticle = new DeleteArticleAppRequest();
+        requestNoArticle.setArticleId(1L);
+        requestNoArticle.setUsername(articleWithCertified.getUser().getUsername());
+
+        DeleteArticleAppRequest requestNotAuthor = new DeleteArticleAppRequest();
+        requestNotAuthor.setArticleId(articleWithCertified.getId());
+        requestNotAuthor.setUsername("no");
+
+        DeleteArticleAppRequest requestNoAuthorArticle = new DeleteArticleAppRequest();
+        requestNoAuthorArticle.setArticleId(404L);
+        requestNoAuthorArticle.setUsername(articleWithCertified.getUser().getUsername());
+
+        DeleteArticleAppRequest requestWithPreprocessing = new DeleteArticleAppRequest();
+        requestWithPreprocessing.setArticleId(articleWithPreprocessing.getId());
+        requestWithPreprocessing.setUsername(articleWithPreprocessing.getUser().getUsername());
+
+        DeleteArticleAppRequest requestWithNoCertified = new DeleteArticleAppRequest();
+        requestWithNoCertified.setArticleId(articleWithNoCertified.getId());
+        requestWithNoCertified.setUsername(articleWithNoCertified.getUser().getUsername());
+
+        DeleteArticleAppRequest requestWithCertified = new DeleteArticleAppRequest();
+        requestWithCertified.setArticleId(articleWithCertified.getId());
+        requestWithCertified.setUsername(articleWithCertified.getUser().getUsername());
+
+        given(this.articleRepository.findForUpdateById(any())).willReturn(Optional.empty());
+        given(this.articleRepository.findForUpdateById(requestNoAuthorArticle.getArticleId()))
+                .willReturn(Optional.of(Article.builder().build()));
+        given(this.articleRepository.findForUpdateById(articleWithPreprocessing.getId()))
+                .willReturn(Optional.of(articleWithPreprocessing));
+        given(this.articleRepository.findForUpdateById(articleWithNoCertified.getId()))
+                .willReturn(Optional.of(articleWithNoCertified));
+        given(this.articleRepository.findForUpdateById(articleWithCertified.getId()))
+                .willReturn(Optional.of(articleWithCertified));
+
+        DeleteArticleAppResponse responseNoArticle = this.articleApplicationImpl.delete(requestNoArticle);
+        DeleteArticleAppResponse responseNotAuthor = this.articleApplicationImpl.delete(requestNotAuthor);
+        DeleteArticleAppResponse responseNoAuthorArticle = this.articleApplicationImpl.delete(requestNoAuthorArticle);
+        DeleteArticleAppResponse responseWithPreprocessing =
+                this.articleApplicationImpl.delete(requestWithPreprocessing);
+        DeleteArticleAppResponse responseWithNoCertified = this.articleApplicationImpl.delete(requestWithNoCertified);
+        DeleteArticleAppResponse responseWithCertified = this.articleApplicationImpl.delete(requestWithCertified);
+
+        then(this.articleRepository).should(times(3)).delete(any());
+        then(this.articleRepository).should(times(1)).delete(articleWithPreprocessing);
+        then(this.articleRepository).should(times(1)).delete(articleWithNoCertified);
+        then(this.articleRepository).should(times(1)).delete(articleWithCertified);
+
+        then(this.videoRepository).should(times(3)).delete(any());
+        then(this.videoRepository).should(times(1)).delete(videoWithPreprocessing);
+        then(this.videoRepository).should(times(1)).delete(videoWithNoCertified);
+        then(this.videoRepository).should(times(1)).delete(videoWithCertified);
+
+        then(this.userService).should(times(3)).noticeDeleteArticle(any());
+        then(this.userService).should(times(3)).noticeDeleteArticle(author);
+        then(this.userService).should(times(1)).noticeDeleteCertified(any());
+        then(this.userService).should(times(1)).noticeDeleteCertified(author);
+
+        assertThat(responseNoArticle.getStatus()).isEqualTo(DeleteArticleAppResponseStatus.NO_ARTICLE);
+        assertThat(responseNotAuthor.getStatus()).isEqualTo(DeleteArticleAppResponseStatus.FORBIDDEN);
+        assertThat(responseNoAuthorArticle.getStatus()).isEqualTo(DeleteArticleAppResponseStatus.FORBIDDEN);
+        assertThat(responseWithPreprocessing.getStatus()).isEqualTo(DeleteArticleAppResponseStatus.SUCCESS);
+        assertThat(responseWithNoCertified.getStatus()).isEqualTo(DeleteArticleAppResponseStatus.SUCCESS);
+        assertThat(responseWithCertified.getStatus()).isEqualTo(DeleteArticleAppResponseStatus.SUCCESS);
     }
 
     @Test

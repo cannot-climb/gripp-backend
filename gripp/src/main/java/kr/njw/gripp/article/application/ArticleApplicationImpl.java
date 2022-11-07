@@ -219,6 +219,7 @@ public class ArticleApplicationImpl implements ArticleApplication {
 
         if (user == null) {
             response.setStatus(ReactArticleAppResponseStatus.SUCCESS);
+            response.setFavorite(request.isFavorite());
             this.logger.error("유저가 없습니다 - " + request);
             return response;
         }

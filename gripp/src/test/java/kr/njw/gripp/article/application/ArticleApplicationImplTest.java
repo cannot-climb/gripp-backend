@@ -2,6 +2,7 @@ package kr.njw.gripp.article.application;
 
 import kr.njw.gripp.article.application.dto.*;
 import kr.njw.gripp.article.entity.Article;
+import kr.njw.gripp.article.entity.ArticleFavorite;
 import kr.njw.gripp.article.repository.ArticleFavoriteRepository;
 import kr.njw.gripp.article.repository.ArticleRepository;
 import kr.njw.gripp.user.application.UserApplication;
@@ -518,6 +519,138 @@ class ArticleApplicationImplTest {
 
     @Test
     void react() {
+        User author = User.builder()
+                .id(10L)
+                .username("test")
+                .build();
+
+        User requesterAlreadyFavorite = User.builder()
+                .id(20L)
+                .username("test2")
+                .build();
+
+        User requesterNotFavorite = User.builder()
+                .id(21L)
+                .username("test3")
+                .build();
+
+        Article article = Article.builder()
+                .id(1000L)
+                .user(author)
+                .viewCount(3282)
+                .favoriteCount(672)
+                .build();
+
+        ReactArticleAppRequest requestInvalidArticle = new ReactArticleAppRequest();
+        requestInvalidArticle.setUsernameRequestedBy("hi");
+        requestInvalidArticle.setArticleId(404L);
+        requestInvalidArticle.setFavorite(false);
+
+        ReactArticleAppRequest requestInvalidUser = new ReactArticleAppRequest();
+        requestInvalidUser.setUsernameRequestedBy("hi");
+        requestInvalidUser.setArticleId(article.getId());
+        requestInvalidUser.setFavorite(true);
+
+        ReactArticleAppRequest requestAuthorDoFavor = new ReactArticleAppRequest();
+        requestAuthorDoFavor.setUsernameRequestedBy(author.getUsername());
+        requestAuthorDoFavor.setArticleId(article.getId());
+        requestAuthorDoFavor.setFavorite(true);
+
+        ReactArticleAppRequest requestAuthorDoNotFavor = new ReactArticleAppRequest();
+        requestAuthorDoNotFavor.setUsernameRequestedBy(author.getUsername());
+        requestAuthorDoNotFavor.setArticleId(article.getId());
+        requestAuthorDoNotFavor.setFavorite(false);
+
+        ReactArticleAppRequest requestAlreadyFavoriteDoFavor = new ReactArticleAppRequest();
+        requestAlreadyFavoriteDoFavor.setUsernameRequestedBy(requesterAlreadyFavorite.getUsername());
+        requestAlreadyFavoriteDoFavor.setArticleId(article.getId());
+        requestAlreadyFavoriteDoFavor.setFavorite(true);
+
+        ReactArticleAppRequest requestAlreadyFavoriteDoNotFavor = new ReactArticleAppRequest();
+        requestAlreadyFavoriteDoNotFavor.setUsernameRequestedBy(requesterAlreadyFavorite.getUsername());
+        requestAlreadyFavoriteDoNotFavor.setArticleId(article.getId());
+        requestAlreadyFavoriteDoNotFavor.setFavorite(false);
+
+        ReactArticleAppRequest requestNotFavoriteDoFavor = new ReactArticleAppRequest();
+        requestNotFavoriteDoFavor.setUsernameRequestedBy(requesterNotFavorite.getUsername());
+        requestNotFavoriteDoFavor.setArticleId(article.getId());
+        requestNotFavoriteDoFavor.setFavorite(true);
+
+        ReactArticleAppRequest requestNotFavoriteDoNotFavor = new ReactArticleAppRequest();
+        requestNotFavoriteDoNotFavor.setUsernameRequestedBy(requesterNotFavorite.getUsername());
+        requestNotFavoriteDoNotFavor.setArticleId(article.getId());
+        requestNotFavoriteDoNotFavor.setFavorite(false);
+
+        given(this.articleRepository.findById(any())).willReturn(Optional.empty());
+        given(this.articleRepository.findById(article.getId())).willReturn(Optional.of(article));
+
+        given(this.articleFavoriteRepository.findForUpdateByArticleIdAndUserId(any(), any()))
+                .willReturn(Optional.empty());
+        given(this.articleFavoriteRepository.findForUpdateByArticleIdAndUserId(article.getId(),
+                requesterAlreadyFavorite.getId()))
+                .willReturn(Optional.of(ArticleFavorite.builder()
+                        .article(article).user(requesterAlreadyFavorite).build()));
+
+        given(this.userRepository.findByUsername(any())).willReturn(Optional.empty());
+        given(this.userRepository.findByUsername(author.getUsername())).willReturn(Optional.of(author));
+        given(this.userRepository.findByUsername(requesterAlreadyFavorite.getUsername()))
+                .willReturn(Optional.of(requesterAlreadyFavorite));
+        given(this.userRepository.findByUsername(requesterNotFavorite.getUsername()))
+                .willReturn(Optional.of(requesterNotFavorite));
+
+        ReactArticleAppResponse responseInvalidArticle = this.articleApplicationImpl.react(requestInvalidArticle);
+        ReactArticleAppResponse responseInvalidUser = this.articleApplicationImpl.react(requestInvalidUser);
+        ReactArticleAppResponse responseAuthorDoFavor = this.articleApplicationImpl.react(requestAuthorDoFavor);
+        ReactArticleAppResponse responseAuthorDoNotFavor = this.articleApplicationImpl.react(requestAuthorDoNotFavor);
+        ReactArticleAppResponse responseAlreadyFavoriteDoFavor =
+                this.articleApplicationImpl.react(requestAlreadyFavoriteDoFavor);
+        ReactArticleAppResponse responseAlreadyFavoriteDoNotFavor =
+                this.articleApplicationImpl.react(requestAlreadyFavoriteDoNotFavor);
+        ReactArticleAppResponse responseNotFavoriteDoFavor =
+                this.articleApplicationImpl.react(requestNotFavoriteDoFavor);
+        ReactArticleAppResponse responseNotFavoriteDoNotFavor =
+                this.articleApplicationImpl.react(requestNotFavoriteDoNotFavor);
+
+        then(this.articleRepository).should(times(2)).incrementFavoriteCountById(any());
+        then(this.articleRepository).should(times(2)).incrementFavoriteCountById(article.getId());
+
+        then(this.articleRepository).should(times(1)).decrementFavoriteCountById(any());
+        then(this.articleRepository).should(times(1)).decrementFavoriteCountById(article.getId());
+
+        then(this.articleFavoriteRepository).should(times(2)).save(any());
+        then(this.articleFavoriteRepository).should(times(1))
+                .save(argThat(argument -> argument.getArticle() == article && argument.getUser() == author));
+        then(this.articleFavoriteRepository).should(times(1))
+                .save(argThat(argument -> argument.getArticle() == article &&
+                        argument.getUser() == requesterNotFavorite));
+
+        then(this.articleFavoriteRepository).should(times(1)).delete(any());
+        then(this.articleFavoriteRepository).should(times(1))
+                .delete(argThat(argument -> argument.getArticle() == article &&
+                        argument.getUser() == requesterAlreadyFavorite));
+
+        assertThat(responseInvalidArticle.getStatus()).isEqualTo(ReactArticleAppResponseStatus.NO_ARTICLE);
+
+        assertThat(responseInvalidUser.getStatus()).isEqualTo(ReactArticleAppResponseStatus.SUCCESS);
+        assertThat(responseInvalidUser.isFavorite()).isTrue();
+
+        assertThat(responseAuthorDoFavor.getStatus()).isEqualTo(ReactArticleAppResponseStatus.SUCCESS);
+        assertThat(responseAuthorDoFavor.isFavorite()).isTrue();
+
+        assertThat(responseAuthorDoNotFavor.getStatus()).isEqualTo(ReactArticleAppResponseStatus.SUCCESS);
+        assertThat(responseAuthorDoNotFavor.isFavorite()).isFalse();
+
+        assertThat(responseAlreadyFavoriteDoFavor.getStatus()).isEqualTo(ReactArticleAppResponseStatus.SUCCESS);
+        assertThat(responseAlreadyFavoriteDoFavor.isFavorite()).isTrue();
+
+        assertThat(responseAlreadyFavoriteDoNotFavor.getStatus()).isEqualTo(ReactArticleAppResponseStatus.SUCCESS);
+        assertThat(responseAlreadyFavoriteDoNotFavor.isFavorite()).isFalse();
+
+        assertThat(responseNotFavoriteDoFavor.getStatus()).isEqualTo(ReactArticleAppResponseStatus.SUCCESS);
+        assertThat(responseNotFavoriteDoFavor.isFavorite()).isTrue();
+
+        assertThat(responseNotFavoriteDoNotFavor.getStatus()).isEqualTo(ReactArticleAppResponseStatus.SUCCESS);
+        assertThat(responseNotFavoriteDoNotFavor.isFavorite()).isFalse();
     }
 
     @Test

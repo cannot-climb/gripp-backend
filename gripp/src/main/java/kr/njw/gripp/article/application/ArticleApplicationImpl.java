@@ -2,6 +2,7 @@ package kr.njw.gripp.article.application;
 
 import kr.njw.gripp.article.application.dto.*;
 import kr.njw.gripp.article.application.dto.search.SearchArticleAppRequest;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppRequestOrder;
 import kr.njw.gripp.article.application.dto.search.SearchArticleAppResponse;
 import kr.njw.gripp.article.application.dto.search.SearchArticleAppResponseItem;
 import kr.njw.gripp.article.entity.Article;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -267,7 +269,8 @@ public class ArticleApplicationImpl implements ArticleApplication {
                         .statusIn(filter.getStatusIn())
                         .build())
                 .toList();
-        SearchArticleRepoRequestOrder repoOrder = switch (request.getOrder()) {
+        SearchArticleRepoRequestOrder repoOrder = switch (Objects.requireNonNullElse(request.getOrder(),
+                SearchArticleAppRequestOrder.NEW)) {
             case OLD -> SearchArticleRepoRequestOrder.OLD;
             case VIEW -> SearchArticleRepoRequestOrder.VIEW;
             case POPULAR -> SearchArticleRepoRequestOrder.POPULAR;

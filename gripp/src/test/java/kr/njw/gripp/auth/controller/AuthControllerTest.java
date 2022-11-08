@@ -17,7 +17,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Random;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -34,9 +34,11 @@ class AuthControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private AccountApplication accountApplication;
+    private Random random;
 
     @BeforeEach
     void setUp() {
+        this.random = new Random(42);
     }
 
     @AfterEach
@@ -99,7 +101,7 @@ class AuthControllerTest {
         given(this.accountApplication.login(any())).willAnswer(invocation -> {
             LoginAppResponse failAppResponse = new LoginAppResponse();
 
-            switch (ThreadLocalRandom.current().nextInt(5)) {
+            switch (this.random.nextInt(5)) {
                 case 0 -> {
                     failAppResponse.setSuccess(false);
                     failAppResponse.setAccessToken("test ACCESS 987");
@@ -179,7 +181,7 @@ class AuthControllerTest {
         given(this.accountApplication.refreshToken(any())).willAnswer(invocation -> {
             RefreshTokenAppResponse failAppResponse = new RefreshTokenAppResponse();
 
-            switch (ThreadLocalRandom.current().nextInt(5)) {
+            switch (this.random.nextInt(5)) {
                 case 0 -> {
                     failAppResponse.setSuccess(false);
                     failAppResponse.setAccessToken("refresh ACCESS 987");

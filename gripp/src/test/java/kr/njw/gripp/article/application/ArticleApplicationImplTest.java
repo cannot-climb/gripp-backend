@@ -1,10 +1,14 @@
 package kr.njw.gripp.article.application;
 
 import kr.njw.gripp.article.application.dto.*;
+import kr.njw.gripp.article.application.dto.search.*;
 import kr.njw.gripp.article.entity.Article;
 import kr.njw.gripp.article.entity.ArticleFavorite;
 import kr.njw.gripp.article.repository.ArticleFavoriteRepository;
 import kr.njw.gripp.article.repository.ArticleRepository;
+import kr.njw.gripp.article.repository.dto.SearchArticleRepoPageToken;
+import kr.njw.gripp.article.repository.dto.SearchArticleRepoRequestFilter;
+import kr.njw.gripp.article.repository.dto.SearchArticleRepoRequestOrder;
 import kr.njw.gripp.user.application.UserApplication;
 import kr.njw.gripp.user.application.dto.FindUserAppResponse;
 import kr.njw.gripp.user.entity.User;
@@ -15,6 +19,7 @@ import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.entity.Video;
 import kr.njw.gripp.video.entity.vo.VideoStatus;
 import kr.njw.gripp.video.repository.VideoRepository;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,10 +27,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,10 +61,12 @@ class ArticleApplicationImplTest {
     private UserRepository userRepository;
     @Mock
     private VideoRepository videoRepository;
+    private Random random;
     private LocalDateTime now;
 
     @BeforeEach
     void setUp() {
+        this.random = new Random(42);
         this.now = LocalDateTime.now();
     }
 
@@ -655,5 +666,171 @@ class ArticleApplicationImplTest {
 
     @Test
     void search() {
+        final int REQUEST_CASE = 250;
+        List<SearchArticleAppRequest> requests = new ArrayList<>();
+
+        for (int i = 0; i < REQUEST_CASE; i++) {
+            SearchArticleAppRequest request = new SearchArticleAppRequest();
+            int filterCount = this.random.nextInt(20);
+
+            for (int j = 0; j < filterCount; j++) {
+                switch (this.random.nextInt(7)) {
+                    case 0 -> request.getFilters()
+                            .add(SearchArticleAppRequestFilter.builder()
+                                    .username(RandomStringUtils.randomPrint(0, 10))
+                                    .build());
+                    case 1 -> request.getFilters()
+                            .add(SearchArticleAppRequestFilter.builder()
+                                    .titleLike(RandomStringUtils.randomPrint(0, 100))
+                                    .build());
+                    case 2 -> request.getFilters()
+                            .add(SearchArticleAppRequestFilter.builder()
+                                    .minLevel(this.random.nextInt(0, 20))
+                                    .maxLevel(this.random.nextInt(0, 20))
+                                    .build());
+                    case 3 -> request.getFilters()
+                            .add(SearchArticleAppRequestFilter.builder()
+                                    .minAngle(this.random.nextInt(0, 90))
+                                    .maxAngle(this.random.nextInt(0, 90))
+                                    .build());
+                    case 4 -> request.getFilters()
+                            .add(SearchArticleAppRequestFilter.builder()
+                                    .minDateTime(this.now.minusSeconds(this.random.nextLong(1_000_000_000)))
+                                    .maxDateTime(this.now.plusSeconds(this.random.nextLong(1_000_000_000)))
+                                    .build());
+                    case 5 -> {
+                        List<VideoStatus> statusIn = new ArrayList<>();
+
+                        if (this.random.nextInt(2) == 1) {
+                            statusIn.add(VideoStatus.PREPROCESSING);
+                        }
+                        if (this.random.nextInt(2) == 1) {
+                            statusIn.add(VideoStatus.NO_CERTIFIED);
+                        }
+                        if (this.random.nextInt(2) == 1) {
+                            statusIn.add(VideoStatus.CERTIFIED);
+                        }
+
+                        request.getFilters().add(SearchArticleAppRequestFilter.builder().statusIn(statusIn).build());
+                    }
+                    default -> request.getFilters().add(SearchArticleAppRequestFilter.builder().build());
+                }
+            }
+
+            switch (this.random.nextInt(7)) {
+                case 0 -> request.setOrder(SearchArticleAppRequestOrder.NEW);
+                case 1 -> request.setOrder(SearchArticleAppRequestOrder.OLD);
+                case 2 -> request.setOrder(SearchArticleAppRequestOrder.VIEW);
+                case 3 -> request.setOrder(SearchArticleAppRequestOrder.POPULAR);
+                case 4 -> request.setOrder(SearchArticleAppRequestOrder.HARD);
+                case 5 -> request.setOrder(SearchArticleAppRequestOrder.EASY);
+                default -> request.setOrder(null);
+            }
+
+            switch (this.random.nextInt(3)) {
+                case 0 -> request.setPageToken(null);
+                case 1 -> request.setPageToken("");
+                default -> request.setPageToken(RandomStringUtils.randomAlphanumeric(1, 100));
+            }
+
+            requests.add(request);
+        }
+
+        User author = User.builder()
+                .id(10L)
+                .username("test")
+                .build();
+
+        Video video = Video.builder()
+                .id(100L)
+                .uuid("unique")
+                .build();
+
+        Article article = Article.builder()
+                .id(1000L)
+                .user(author)
+                .video(video)
+                .title("my video")
+                .description("desc")
+                .level(19)
+                .angle(23)
+                .viewCount(3282)
+                .favoriteCount(672)
+                .registerDateTime(this.now)
+                .build();
+
+        List<Article> articles = List.of(article, article);
+        SearchArticleRepoPageToken searchArticleRepoPageToken = new SearchArticleRepoPageToken(1, 2, 3, 4);
+
+        given(this.articleRepository.search(any(), any(), any(), anyLong())).willReturn(articles);
+        given(this.articleRepository.createNextPageToken(any())).willReturn(searchArticleRepoPageToken);
+
+        List<SearchArticleAppResponse> responses = new ArrayList<>();
+
+        for (SearchArticleAppRequest request : requests) {
+            responses.add(this.articleApplicationImpl.search(request));
+        }
+
+        then(this.articleRepository).should(times(REQUEST_CASE)).search(any(), any(), any(), anyLong());
+        then(this.articleRepository).should(times(REQUEST_CASE)).createNextPageToken(any());
+        then(this.articleRepository).should(times(REQUEST_CASE)).createNextPageToken(articles);
+
+        for (SearchArticleAppRequest request : requests) {
+            then(this.articleRepository).should(atLeast(1)).search(argThat(argument -> {
+                        if (argument.size() != request.getFilters().size()) {
+                            return false;
+                        }
+
+                        for (int i = 0; i < argument.size(); i++) {
+                            SearchArticleRepoRequestFilter repoRequestFilter = argument.get(i);
+                            SearchArticleAppRequestFilter appRequestFilter = request.getFilters().get(i);
+
+                            try {
+                                assertThat(argument.size()).isEqualTo(request.getFilters().size());
+                                assertThat(repoRequestFilter.getUsername()).isEqualTo(appRequestFilter.getUsername());
+                                assertThat(repoRequestFilter.getTitleLike()).isEqualTo(appRequestFilter.getTitleLike());
+                                assertThat(repoRequestFilter.getMinLevel()).isEqualTo(appRequestFilter.getMinLevel());
+                                assertThat(repoRequestFilter.getMaxLevel()).isEqualTo(appRequestFilter.getMaxLevel());
+                                assertThat(repoRequestFilter.getMinAngle()).isEqualTo(appRequestFilter.getMinAngle());
+                                assertThat(repoRequestFilter.getMaxAngle()).isEqualTo(appRequestFilter.getMaxAngle());
+                                assertThat(repoRequestFilter.getMinDateTime()).isEqualTo(appRequestFilter.getMinDateTime());
+                                assertThat(repoRequestFilter.getMaxDateTime()).isEqualTo(appRequestFilter.getMaxDateTime());
+                                assertThat(repoRequestFilter.getStatusIn()).isEqualTo(appRequestFilter.getStatusIn());
+                            } catch (AssertionFailedError e) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }),
+                    argThat(argument -> (request.getOrder() == null && argument == SearchArticleRepoRequestOrder.NEW) ||
+                            (request.getOrder() != null && request.getOrder().toString().equals(argument.toString()))),
+                    argThat(argument -> argument.equals(new SearchArticleRepoPageToken(request.getPageToken()))),
+                    eq(30L));
+        }
+
+        for (SearchArticleAppResponse response : responses) {
+            assertThat(response.getArticles()).hasSize(2);
+            assertThat(response.getNextPageToken()).isEqualTo(searchArticleRepoPageToken.encode());
+
+            SearchArticleAppResponseItem item = response.getArticles().get(1);
+            assertThat(item.getId().orElseThrow()).isEqualTo(article.getId());
+            assertThat(item.getUsername()).isEqualTo(article.getUser().getUsername());
+            assertThat(item.getVideo().isSuccess()).isTrue();
+            assertThat(item.getVideo().getUuid()).isEqualTo(article.getVideo().getUuid());
+            assertThat(item.getVideo().getStreamingUrl()).isEqualTo(article.getVideo().getStreamingUrl());
+            assertThat(item.getVideo().getStreamingLength()).isEqualTo(article.getVideo().getStreamingLength());
+            assertThat(item.getVideo().getStreamingAspectRatio()).isEqualTo(
+                    article.getVideo().getStreamingAspectRatio());
+            assertThat(item.getVideo().getThumbnailUrl()).isEqualTo(article.getVideo().getThumbnailUrl());
+            assertThat(item.getVideo().getStatus()).isEqualTo(article.getVideo().getStatus());
+            assertThat(item.getTitle()).isEqualTo(article.getTitle());
+            assertThat(item.getDescription()).isEqualTo(article.getDescription());
+            assertThat(item.getLevel()).isEqualTo(article.getLevel());
+            assertThat(item.getAngle()).isEqualTo(article.getAngle());
+            assertThat(item.getViewCount()).isEqualTo(article.getViewCount());
+            assertThat(item.getFavoriteCount()).isEqualTo(article.getFavoriteCount());
+            assertThat(item.getRegisterDateTime().orElseThrow()).isEqualTo(article.getRegisterDateTime());
+        }
     }
 }

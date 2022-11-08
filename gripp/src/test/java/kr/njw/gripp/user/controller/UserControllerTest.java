@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Random;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
@@ -33,10 +33,12 @@ class UserControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private UserApplication userApplication;
+    private Random random;
     private LocalDateTime now;
 
     @BeforeEach
     void setUp() {
+        this.random = new Random(42);
         this.now = LocalDateTime.now();
     }
 
@@ -118,12 +120,12 @@ class UserControllerTest {
         FindUserAppResponse appResponse = new FindUserAppResponse();
         appResponse.setSuccess(true);
         appResponse.setUsername(username);
-        appResponse.setTier(ThreadLocalRandom.current().nextInt(0, 19 + 1));
-        appResponse.setScore(ThreadLocalRandom.current().nextInt(0, 1900 + 1));
-        appResponse.setRank(ThreadLocalRandom.current().nextInt(1, 100 + 1));
-        appResponse.setPercentile(ThreadLocalRandom.current().nextInt(0, 100 + 1));
-        appResponse.setArticleCount(ThreadLocalRandom.current().nextInt(0, 1000 + 1));
-        appResponse.setArticleCertifiedCount(ThreadLocalRandom.current().nextInt(0, appResponse.getArticleCount() + 1));
+        appResponse.setTier(this.random.nextInt(0, 19 + 1));
+        appResponse.setScore(this.random.nextInt(0, 1900 + 1));
+        appResponse.setRank(this.random.nextInt(1, 100 + 1));
+        appResponse.setPercentile(this.random.nextInt(0, 100 + 1));
+        appResponse.setArticleCount(this.random.nextInt(0, 1000 + 1));
+        appResponse.setArticleCertifiedCount(this.random.nextInt(0, appResponse.getArticleCount() + 1));
         appResponse.setRegisterDateTime(this.now);
         return appResponse;
     }

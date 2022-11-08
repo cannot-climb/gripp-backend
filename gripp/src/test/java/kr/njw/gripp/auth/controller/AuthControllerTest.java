@@ -3,7 +3,7 @@ package kr.njw.gripp.auth.controller;
 import kr.njw.gripp.auth.application.AccountApplication;
 import kr.njw.gripp.auth.application.dto.LoginAppResponse;
 import kr.njw.gripp.auth.application.dto.RefreshTokenAppResponse;
-import org.apache.commons.lang3.RandomStringUtils;
+import net.datafaker.Faker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,10 +35,12 @@ class AuthControllerTest {
     @MockBean
     private AccountApplication accountApplication;
     private Random random;
+    private Faker faker;
 
     @BeforeEach
     void setUp() {
         this.random = new Random(42);
+        this.faker = new Faker(this.random);
     }
 
     @AfterEach
@@ -134,34 +136,34 @@ class AuthControllerTest {
         given(this.accountApplication.login(argThat(argument -> argument.getUsername().equals("njw") &&
                 argument.getPassword().equals("jasdfio32")))).willReturn(appResponse);
 
-        ResultActions perform = this.mockMvc.perform(
+        ResultActions performOk = this.mockMvc.perform(
                 post("/auth/accounts/njw/tokens").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
                         {
                             "password": "jasdfio32"
                         }"""));
-        ResultActions perform2 = this.mockMvc.perform(
+        ResultActions performWrongPassword = this.mockMvc.perform(
                 post("/auth/accounts/njw/tokens").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
                         {
                             "password": "pass1234"
                         }"""));
 
-        List<ResultActions> performs3 = new ArrayList<>();
+        List<ResultActions> performsWrongUsername = new ArrayList<>();
 
         for (int i = 0; i < 100; i++) {
-            performs3.add(this.mockMvc.perform(
-                    post("/auth/accounts/%s/tokens".formatted(RandomStringUtils.randomAlphanumeric(1, 20)))
+            performsWrongUsername.add(this.mockMvc.perform(
+                    post("/auth/accounts/%s/tokens".formatted(this.faker.touhou().characterName()))
                             .with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
                                     {
                                         "password": "%s"
-                                    }""".formatted(RandomStringUtils.randomAlphanumeric(1, 20)))));
+                                    }""".formatted(this.faker.touhou().trackName()))));
         }
 
-        perform.andExpect(status().isOk())
+        performOk.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.accessToken").value(appResponse.getAccessToken().orElseThrow()))
                 .andExpect(jsonPath("$.refreshToken").value(appResponse.getRefreshToken().orElseThrow()));
-        perform2.andExpect(status().isUnauthorized());
-        performs3.forEach(aPerform -> {
+        performWrongPassword.andExpect(status().isUnauthorized());
+        performsWrongUsername.forEach(aPerform -> {
             try {
                 aPerform.andExpect(status().isUnauthorized());
             } catch (Exception e) {
@@ -214,34 +216,34 @@ class AuthControllerTest {
         given(this.accountApplication.refreshToken(argThat(argument -> argument.getUsername().equals("dsf243rt") &&
                 argument.getRefreshToken().equals("dgf234")))).willReturn(appResponse);
 
-        ResultActions perform = this.mockMvc.perform(
+        ResultActions performOk = this.mockMvc.perform(
                 patch("/auth/accounts/dsf243rt/tokens").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
                         {
                             "refreshToken": "dgf234"
                         }"""));
-        ResultActions perform2 = this.mockMvc.perform(
+        ResultActions performWrongToken = this.mockMvc.perform(
                 patch("/auth/accounts/dsf243rt/tokens").with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
                         {
                             "refreshToken": "dgf234!"
                         }"""));
 
-        List<ResultActions> performs3 = new ArrayList<>();
+        List<ResultActions> performsWrongUsername = new ArrayList<>();
 
         for (int i = 0; i < 100; i++) {
-            performs3.add(this.mockMvc.perform(
-                    patch("/auth/accounts/%s/tokens".formatted(RandomStringUtils.randomAlphanumeric(1, 20)))
+            performsWrongUsername.add(this.mockMvc.perform(
+                    patch("/auth/accounts/%s/tokens".formatted(this.faker.touhou().characterName()))
                             .with(csrf()).contentType(MediaType.APPLICATION_JSON).content("""
                                     {
                                         "refreshToken": "%s"
-                                    }""".formatted(RandomStringUtils.randomAlphanumeric(1, 20)))));
+                                    }""".formatted(this.faker.touhou().trackName()))));
         }
 
-        perform.andExpect(status().isOk())
+        performOk.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.accessToken").value(appResponse.getAccessToken().orElseThrow()))
                 .andExpect(jsonPath("$.refreshToken").value(appResponse.getRefreshToken().orElseThrow()));
-        perform2.andExpect(status().isUnauthorized());
-        performs3.forEach(aPerform -> {
+        performWrongToken.andExpect(status().isUnauthorized());
+        performsWrongUsername.forEach(aPerform -> {
             try {
                 aPerform.andExpect(status().isUnauthorized());
             } catch (Exception e) {

@@ -19,7 +19,8 @@ import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.entity.Video;
 import kr.njw.gripp.video.entity.vo.VideoStatus;
 import kr.njw.gripp.video.repository.VideoRepository;
-import org.apache.commons.lang3.RandomStringUtils;
+import net.datafaker.Faker;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,11 +63,13 @@ class ArticleApplicationImplTest {
     @Mock
     private VideoRepository videoRepository;
     private Random random;
+    private Faker faker;
     private LocalDateTime now;
 
     @BeforeEach
     void setUp() {
         this.random = new Random(42);
+        this.faker = new Faker(this.random);
         this.now = LocalDateTime.now();
     }
 
@@ -677,11 +680,13 @@ class ArticleApplicationImplTest {
                 switch (this.random.nextInt(7)) {
                     case 0 -> request.getFilters()
                             .add(SearchArticleAppRequestFilter.builder()
-                                    .username(RandomStringUtils.randomPrint(0, 10))
+                                    .username(StringUtils.substring(this.faker.hololive().talent(), 0,
+                                            this.random.nextInt(10)))
                                     .build());
                     case 1 -> request.getFilters()
                             .add(SearchArticleAppRequestFilter.builder()
-                                    .titleLike(RandomStringUtils.randomPrint(0, 100))
+                                    .titleLike(StringUtils.substring(this.faker.book().title(), 0,
+                                            this.random.nextInt(10)))
                                     .build());
                     case 2 -> request.getFilters()
                             .add(SearchArticleAppRequestFilter.builder()
@@ -730,7 +735,7 @@ class ArticleApplicationImplTest {
             switch (this.random.nextInt(3)) {
                 case 0 -> request.setPageToken(null);
                 case 1 -> request.setPageToken("");
-                default -> request.setPageToken(RandomStringUtils.randomAlphanumeric(1, 100));
+                default -> request.setPageToken(this.faker.shakespeare().hamletQuote());
             }
 
             requests.add(request);

@@ -36,7 +36,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springdoc:springdoc-openapi-ui:1.6.11'
+    implementation 'org.springdoc:springdoc-openapi-ui:1.6.12'
     implementation 'io.jsonwebtoken:jjwt:0.9.1'
     implementation 'me.paulschwarz:spring-dotenv:2.5.4'
     implementation 'commons-io:commons-io:2.11.0'
@@ -46,6 +46,7 @@ dependencies {
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     implementation "io.micrometer:micrometer-core:${micrometerVersion}"
     implementation "io.micrometer:micrometer-registry-prometheus:${micrometerVersion}"
+    implementation 'net.datafaker:datafaker:1.6.0'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.h2database:h2'

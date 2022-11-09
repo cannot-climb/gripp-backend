@@ -83,7 +83,7 @@ public class ArticleRepositoryImpl implements ArticleRepositoryCustom {
                 booleanBuilder.and(article.registerDateTime.loe(filter.getMaxDateTime()));
             }
 
-            if (filter.getStatusIn() != null && !filter.getStatusIn().isEmpty()) {
+            if (filter.getStatusIn() != null) {
                 booleanBuilder.and(article.video.status.in(filter.getStatusIn()));
             }
         }

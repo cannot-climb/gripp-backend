@@ -39,6 +39,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class ArticleRepositoryImplTest {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @InjectMocks
     private ArticleRepositoryImpl articleRepositoryImpl;
     @Mock
@@ -49,7 +50,6 @@ class ArticleRepositoryImplTest {
     private Faker faker;
     private LocalDateTime now;
     private List<Article> sampleArticles;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @BeforeEach
     void setUp() {

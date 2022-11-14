@@ -128,9 +128,8 @@ public class ArticleController {
             ErrorResponse errorResponse = new ErrorResponse();
             errorResponse.setErrors(List.of(switch (appResponse.getStatus()) {
                 case NO_USER -> "invalid user";
-                case NO_VIDEO -> "invalid video";
                 case ALREADY_POSTED_VIDEO -> "already posted video";
-                default -> "fail to write";
+                default -> "invalid video";
             }));
             this.logger.warn("게시물 등록 실패 - " + request + ", " + errorResponse);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
@@ -190,7 +189,7 @@ public class ArticleController {
                 errorResponse.setErrors(List.of("invalid article"));
                 yield ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
-            case FORBIDDEN -> {
+            default -> {
                 ErrorResponse errorResponse = new ErrorResponse();
                 errorResponse.setErrors(List.of("forbidden operation"));
                 yield ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
@@ -234,20 +233,13 @@ public class ArticleController {
         if (appResponse.getStatus() != DeleteArticleAppResponseStatus.SUCCESS) {
             ErrorResponse errorResponse = new ErrorResponse();
 
-            switch (appResponse.getStatus()) {
-                case NO_ARTICLE -> {
-                    errorResponse.setErrors(List.of("invalid article"));
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-                }
-                case FORBIDDEN -> {
-                    errorResponse.setErrors(List.of("forbidden operation"));
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
-                }
-                default -> {
-                    errorResponse.setErrors(List.of("fail to delete"));
-                    return ResponseEntity.badRequest().body(errorResponse);
-                }
+            if (appResponse.getStatus() == DeleteArticleAppResponseStatus.NO_ARTICLE) {
+                errorResponse.setErrors(List.of("invalid article"));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
             }
+
+            errorResponse.setErrors(List.of("forbidden operation"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
         }
 
         DeleteArticleResponse response = new DeleteArticleResponse();

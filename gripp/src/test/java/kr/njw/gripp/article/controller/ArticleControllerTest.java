@@ -1,10 +1,7 @@
 package kr.njw.gripp.article.controller;
 
 import kr.njw.gripp.article.application.ArticleApplication;
-import kr.njw.gripp.article.application.dto.EditArticleAppResponse;
-import kr.njw.gripp.article.application.dto.EditArticleAppResponseStatus;
-import kr.njw.gripp.article.application.dto.FindArticleAppResponse;
-import kr.njw.gripp.article.application.dto.FindArticleAppResponseStatus;
+import kr.njw.gripp.article.application.dto.*;
 import kr.njw.gripp.user.application.dto.FindUserAppResponse;
 import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.entity.vo.VideoStatus;
@@ -22,12 +19,13 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ArticleController.class)
@@ -47,7 +45,7 @@ class ArticleControllerTest {
     void tearDown() {
     }
 
-    @WithMockUser
+    @WithMockUser(username = "user")
     @Test
     void findArticle() throws Exception {
         FindUserAppResponse userAppResponse = new FindUserAppResponse();
@@ -89,7 +87,8 @@ class ArticleControllerTest {
 
         given(this.articleApplication.find(notNull())).willReturn(appResponseNoArticle);
         given(this.articleApplication.find(argThat(argument ->
-                argument != null && argument.getArticleId() == 42L))).willReturn(appResponseSuccess);
+                argument != null && argument.getUsernameRequestedBy().equals("user") &&
+                        argument.getArticleId() == 42L))).willReturn(appResponseSuccess);
 
         ResultActions performInvalidId = this.mockMvc.perform(get("/articles/42f"));
         ResultActions performNoArticle = this.mockMvc.perform(get("/articles/1"));
@@ -126,8 +125,105 @@ class ArticleControllerTest {
                 .andExpect(jsonPath("$.video.status").value(videoAppResponse.getStatus().toString()));
     }
 
+    @WithMockUser(username = "user")
     @Test
-    void writeArticle() {
+    void writeArticle() throws Exception {
+        WriteArticleAppResponse appResponseInvalidUser = new WriteArticleAppResponse();
+        appResponseInvalidUser.setStatus(WriteArticleAppResponseStatus.NO_USER);
+
+        WriteArticleAppResponse appResponseInvalidVideo = new WriteArticleAppResponse();
+        appResponseInvalidVideo.setStatus(WriteArticleAppResponseStatus.NO_VIDEO);
+
+        WriteArticleAppResponse appResponseAlreadyPostedVideo = new WriteArticleAppResponse();
+        appResponseAlreadyPostedVideo.setStatus(WriteArticleAppResponseStatus.ALREADY_POSTED_VIDEO);
+
+        WriteArticleAppResponse appResponseSuccess = new WriteArticleAppResponse();
+        appResponseSuccess.setStatus(WriteArticleAppResponseStatus.SUCCESS);
+        appResponseSuccess.setId(42L);
+
+        given(this.articleApplication.write(any())).willReturn(appResponseInvalidUser);
+        given(this.articleApplication.write(
+                argThat(argument -> argument != null && argument.getUsername().equals("user"))))
+                .willReturn(appResponseInvalidVideo);
+        given(this.articleApplication.write(
+                argThat(argument -> argument != null && argument.getUsername().equals("user") &&
+                        argument.getVideoUuid().equals("hello"))))
+                .willReturn(appResponseAlreadyPostedVideo);
+        given(this.articleApplication.write(
+                argThat(argument -> argument != null && argument.getUsername().equals("user") &&
+                        argument.getVideoUuid().equals("uuid"))))
+                .willReturn(appResponseSuccess);
+
+        ResultActions performInvalidUser =
+                this.mockMvc.perform(post("/articles").with(user("hi")).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "videoId": "1",
+                                    "title": "asdf abgqwaw fdsasdc fd",
+                                    "description": "23 asdf c23 3g4 2ba",
+                                    "level": 15,
+                                    "angle": 45
+                                }"""));
+
+        ResultActions performInvalidVideo =
+                this.mockMvc.perform(post("/articles").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "videoId": "abc",
+                                    "title": "asdf abgqwaw fdsasdc fd",
+                                    "description": "23 asdf c23 3g4 2ba",
+                                    "level": 15,
+                                    "angle": 45
+                                }"""));
+
+        ResultActions performAlreadyPostedVideo =
+                this.mockMvc.perform(post("/articles").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "videoId": "hello",
+                                    "title": "asdf abgqwaw fdsasdc fd",
+                                    "description": "23 asdf c23 3g4 2ba",
+                                    "level": 15,
+                                    "angle": 45
+                                }"""));
+
+        ResultActions performOk =
+                this.mockMvc.perform(post("/articles").with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "videoId": "uuid",
+                                    "title": "asdf abgqwaw fdsasdc fd",
+                                    "description": "23 asdf c23 3g4 2ba",
+                                    "level": 15,
+                                    "angle": 45
+                                }"""));
+
+        then(this.articleApplication).should(times(4)).write(argThat(argument ->
+                argument.getTitle().equals("asdf abgqwaw fdsasdc fd") &&
+                        argument.getDescription().equals("23 asdf c23 3g4 2ba") &&
+                        argument.getLevel() == 15 && argument.getAngle() == 45));
+        then(this.articleApplication).should(times(1)).write(argThat(argument ->
+                argument.getUsername().equals("user") && argument.getVideoUuid().equals("uuid") &&
+                        argument.getTitle().equals("asdf abgqwaw fdsasdc fd") &&
+                        argument.getDescription().equals("23 asdf c23 3g4 2ba") &&
+                        argument.getLevel() == 15 && argument.getAngle() == 45));
+
+        performInvalidUser.andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.errors[0]").value("invalid user"));
+        performInvalidVideo.andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.errors[0]").value("invalid video"));
+        performAlreadyPostedVideo.andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.errors[0]").value("already posted video"));
+        performOk.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articleId").value(appResponseSuccess.getId().orElseThrow()));
     }
 
     @WithMockUser(username = "user")
@@ -177,6 +273,11 @@ class ArticleControllerTest {
                                     "title": "asdf abgqwaw fdsasdc fd",
                                     "description": "23 asdf c23 3g4 2ba"
                                 }"""));
+
+        then(this.articleApplication).should(times(1)).edit(argThat(argument ->
+                argument.getUsername().equals("user") &&
+                        argument.getTitle().equals("asdf abgqwaw fdsasdc fd") &&
+                        argument.getDescription().equals("23 asdf c23 3g4 2ba")));
 
         performInvalidId.andExpect(status().isNotFound());
         performNoArticle.andExpect(status().isNotFound());

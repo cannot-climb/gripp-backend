@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -98,7 +99,7 @@ class ArticleControllerTest {
         performNoArticle.andExpect(status().isNotFound());
         performOk.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.articleId").value(appResponseSuccess.getId().orElseThrow()))
+                .andExpect(jsonPath("$.articleId").value(is(appResponseSuccess.getId().orElseThrow().toString())))
                 .andExpect(jsonPath("$.title").value(appResponseSuccess.getTitle()))
                 .andExpect(jsonPath("$.description").value(appResponseSuccess.getDescription()))
                 .andExpect(jsonPath("$.level").value(appResponseSuccess.getLevel()))
@@ -223,7 +224,7 @@ class ArticleControllerTest {
                 .andExpect(jsonPath("$.errors[0]").value("already posted video"));
         performOk.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.articleId").value(appResponseSuccess.getId().orElseThrow()));
+                .andExpect(jsonPath("$.articleId").value(is(appResponseSuccess.getId().orElseThrow().toString())));
     }
 
     @WithMockUser(username = "user")
@@ -238,7 +239,7 @@ class ArticleControllerTest {
         EditArticleAppResponse appResponseSuccess = new EditArticleAppResponse();
         appResponseSuccess.setStatus(EditArticleAppResponseStatus.SUCCESS);
 
-        given(this.articleApplication.edit(notNull())).willReturn(appResponseNoArticle);
+        given(this.articleApplication.edit(any())).willReturn(appResponseNoArticle);
         given(this.articleApplication.edit(argThat(argument ->
                 argument != null && argument.getArticleId() == 41L))).willReturn(appResponseForbidden);
         given(this.articleApplication.edit(argThat(argument ->
@@ -289,8 +290,36 @@ class ArticleControllerTest {
                 .andExpect(jsonPath("$.description").value("23 asdf c23 3g4 2ba"));
     }
 
+    @WithMockUser(username = "user")
     @Test
-    void deleteArticle() {
+    void deleteArticle() throws Exception {
+        DeleteArticleAppResponse appResponseNoArticle = new DeleteArticleAppResponse();
+        appResponseNoArticle.setStatus(DeleteArticleAppResponseStatus.NO_ARTICLE);
+
+        DeleteArticleAppResponse appResponseForbidden = new DeleteArticleAppResponse();
+        appResponseForbidden.setStatus(DeleteArticleAppResponseStatus.FORBIDDEN);
+
+        DeleteArticleAppResponse appResponseSuccess = new DeleteArticleAppResponse();
+        appResponseSuccess.setStatus(DeleteArticleAppResponseStatus.SUCCESS);
+
+        given(this.articleApplication.delete(any())).willReturn(appResponseNoArticle);
+        given(this.articleApplication.delete(argThat(argument ->
+                argument != null && argument.getArticleId() == 41L))).willReturn(appResponseForbidden);
+        given(this.articleApplication.delete(argThat(argument ->
+                argument != null && argument.getArticleId() == 42L &&
+                        argument.getUsername().equals("user")))).willReturn(appResponseSuccess);
+
+        ResultActions performInvalidId = this.mockMvc.perform(delete("/articles/42f").with(csrf()));
+        ResultActions performNoArticle = this.mockMvc.perform(delete("/articles/1").with(csrf()));
+        ResultActions performForbidden = this.mockMvc.perform(delete("/articles/41").with(csrf()));
+        ResultActions performOk = this.mockMvc.perform(delete("/articles/42").with(csrf()));
+
+        performInvalidId.andExpect(status().isNotFound());
+        performNoArticle.andExpect(status().isNotFound());
+        performForbidden.andExpect(status().isForbidden());
+        performOk.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articleId").value(is("42")));
     }
 
     @Test

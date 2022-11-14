@@ -285,7 +285,7 @@ class ArticleControllerTest {
         performForbidden.andExpect(status().isForbidden());
         performOk.andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.articleId").value("42"))
+                .andExpect(jsonPath("$.articleId").value(is("42")))
                 .andExpect(jsonPath("$.title").value("asdf abgqwaw fdsasdc fd"))
                 .andExpect(jsonPath("$.description").value("23 asdf c23 3g4 2ba"));
     }
@@ -322,8 +322,67 @@ class ArticleControllerTest {
                 .andExpect(jsonPath("$.articleId").value(is("42")));
     }
 
+    @WithMockUser(username = "user")
     @Test
-    void reactArticle() {
+    void reactArticle() throws Exception {
+        ReactArticleAppResponse appResponseNoArticle = new ReactArticleAppResponse();
+        appResponseNoArticle.setStatus(ReactArticleAppResponseStatus.NO_ARTICLE);
+
+        ReactArticleAppResponse appResponseSuccessToFavorite = new ReactArticleAppResponse();
+        appResponseSuccessToFavorite.setStatus(ReactArticleAppResponseStatus.SUCCESS);
+        appResponseSuccessToFavorite.setFavorite(true);
+
+        ReactArticleAppResponse appResponseSuccessToCancelFavorite = new ReactArticleAppResponse();
+        appResponseSuccessToCancelFavorite.setStatus(ReactArticleAppResponseStatus.SUCCESS);
+        appResponseSuccessToCancelFavorite.setFavorite(false);
+
+        given(this.articleApplication.react(any())).willReturn(appResponseNoArticle);
+        given(this.articleApplication.react(argThat(argument ->
+                argument != null && argument.getArticleId() == 42L &&
+                        argument.getUsernameRequestedBy().equals("user") &&
+                        argument.isFavorite()))).willReturn(appResponseSuccessToFavorite);
+        given(this.articleApplication.react(argThat(argument ->
+                argument != null && argument.getArticleId() == 42L &&
+                        argument.getUsernameRequestedBy().equals("user") &&
+                        !argument.isFavorite()))).willReturn(appResponseSuccessToCancelFavorite);
+
+        ResultActions performInvalidId =
+                this.mockMvc.perform(
+                        patch("/articles/42f/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "favorite": true
+                                        }"""));
+        ResultActions performNoArticle =
+                this.mockMvc.perform(
+                        patch("/articles/1/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "favorite": true
+                                        }"""));
+        ResultActions performOkToFavorite =
+                this.mockMvc.perform(
+                        patch("/articles/42/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "favorite": true
+                                        }"""));
+        ResultActions performOkToCancelFavorite =
+                this.mockMvc.perform(
+                        patch("/articles/42/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "favorite": false
+                                        }"""));
+
+        performInvalidId.andExpect(status().isNotFound());
+        performNoArticle.andExpect(status().isNotFound());
+        performOkToFavorite.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.favorite").value(is(true)));
+        performOkToCancelFavorite.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.favorite").value(is(false)));
     }
 
     @Test

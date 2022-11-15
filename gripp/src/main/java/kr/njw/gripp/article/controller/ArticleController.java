@@ -308,7 +308,7 @@ public class ArticleController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     @PostMapping("/search")
-    public ResponseEntity<?> searchArticle(@Valid @RequestBody SearchArticleRequest request) {
+    public ResponseEntity<?> searchArticles(@Valid @RequestBody SearchArticleRequest request) {
         SearchArticleAppRequest appRequest = new SearchArticleAppRequest();
         appRequest.setFilters(
                 Objects.requireNonNullElse(request.getFilters(), new ArrayList<SearchArticleRequestFilter>())
@@ -324,7 +324,7 @@ public class ArticleController {
                                     .minAngle(filter.getMinAngle()).maxAngle(filter.getMaxAngle()).build();
                             case DATETIME -> SearchArticleAppRequestFilter.builder()
                                     .minDateTime(filter.getMinDateTime()).maxDateTime(filter.getMaxDateTime()).build();
-                            case STATUS -> SearchArticleAppRequestFilter.builder()
+                            default -> SearchArticleAppRequestFilter.builder()
                                     .statusIn(filter.getStatusIn()).build();
                         })
                         .toList());

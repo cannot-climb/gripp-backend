@@ -2,6 +2,9 @@ package kr.njw.gripp.article.controller;
 
 import kr.njw.gripp.article.application.ArticleApplication;
 import kr.njw.gripp.article.application.dto.*;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppRequestOrder;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppResponse;
+import kr.njw.gripp.article.application.dto.search.SearchArticleAppResponseItem;
 import kr.njw.gripp.user.application.dto.FindUserAppResponse;
 import kr.njw.gripp.video.application.dto.FindVideoAppResponse;
 import kr.njw.gripp.video.entity.vo.VideoStatus;
@@ -18,9 +21,11 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
@@ -86,7 +91,7 @@ class ArticleControllerTest {
         appResponseSuccess.setRegisterDateTime(this.now);
         appResponseSuccess.setFavorite(true);
 
-        given(this.articleApplication.find(notNull())).willReturn(appResponseNoArticle);
+        given(this.articleApplication.find(any())).willReturn(appResponseNoArticle);
         given(this.articleApplication.find(argThat(argument ->
                 argument != null && argument.getUsernameRequestedBy().equals("user") &&
                         argument.getArticleId() == 42L))).willReturn(appResponseSuccess);
@@ -346,34 +351,30 @@ class ArticleControllerTest {
                         argument.getUsernameRequestedBy().equals("user") &&
                         !argument.isFavorite()))).willReturn(appResponseSuccessToCancelFavorite);
 
-        ResultActions performInvalidId =
-                this.mockMvc.perform(
-                        patch("/articles/42f/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                            "favorite": true
-                                        }"""));
-        ResultActions performNoArticle =
-                this.mockMvc.perform(
-                        patch("/articles/1/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                            "favorite": true
-                                        }"""));
-        ResultActions performOkToFavorite =
-                this.mockMvc.perform(
-                        patch("/articles/42/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                            "favorite": true
-                                        }"""));
-        ResultActions performOkToCancelFavorite =
-                this.mockMvc.perform(
-                        patch("/articles/42/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
-                                .content("""
-                                        {
-                                            "favorite": false
-                                        }"""));
+        ResultActions performInvalidId = this.mockMvc.perform(
+                patch("/articles/42f/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "favorite": true
+                                }"""));
+        ResultActions performNoArticle = this.mockMvc.perform(
+                patch("/articles/1/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "favorite": true
+                                }"""));
+        ResultActions performOkToFavorite = this.mockMvc.perform(
+                patch("/articles/42/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "favorite": true
+                                }"""));
+        ResultActions performOkToCancelFavorite = this.mockMvc.perform(
+                patch("/articles/42/reaction").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "favorite": false
+                                }"""));
 
         performInvalidId.andExpect(status().isNotFound());
         performNoArticle.andExpect(status().isNotFound());
@@ -385,7 +386,324 @@ class ArticleControllerTest {
                 .andExpect(jsonPath("$.favorite").value(is(false)));
     }
 
+    @WithMockUser
     @Test
-    void searchArticle() {
+    void searchArticles() throws Exception {
+        FindVideoAppResponse videoAppResponse = new FindVideoAppResponse();
+        videoAppResponse.setSuccess(true);
+        videoAppResponse.setUuid("ko");
+        videoAppResponse.setStreamingUrl("http://stream.com/movie.mp4");
+        videoAppResponse.setStreamingLength(10);
+        videoAppResponse.setStreamingAspectRatio(1.5);
+        videoAppResponse.setThumbnailUrl("http://stream.com/thumb.png");
+        videoAppResponse.setStatus(VideoStatus.CERTIFIED);
+
+        SearchArticleAppResponseItem appResponseItem = new SearchArticleAppResponseItem();
+        appResponseItem.setId(42L);
+        appResponseItem.setUsername("admin");
+        appResponseItem.setVideo(videoAppResponse);
+        appResponseItem.setTitle("스프링");
+        appResponseItem.setDescription("부트");
+        appResponseItem.setLevel(11);
+        appResponseItem.setAngle(5);
+        appResponseItem.setViewCount(22);
+        appResponseItem.setFavoriteCount(1);
+        appResponseItem.setRegisterDateTime(this.now);
+
+        SearchArticleAppResponse appResponse = new SearchArticleAppResponse();
+        appResponse.setArticles(List.of(appResponseItem, appResponseItem));
+        appResponse.setNextPageToken("asdf");
+
+        given(this.articleApplication.search(any())).willReturn(appResponse);
+
+        ResultActions performDefault = this.mockMvc.perform(
+                post("/articles/search").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                }"""));
+
+        ResultActions performComplex = this.mockMvc.perform(
+                post("/articles/search").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "filters": [
+                                        {
+                                            "type": "TITLE",
+                                            "titleLike": "the wall"
+                                        },
+                                        {
+                                            "type": "USER",
+                                            "username": "njw1204"
+                                        },
+                                        {
+                                            "type": "LEVEL",
+                                            "minLevel": 1,
+                                            "maxLevel": 19
+                                        },
+                                        {
+                                            "type": "ANGLE",
+                                            "minAngle": 2,
+                                            "maxAngle": 70
+                                        },
+                                        {
+                                            "type": "DATETIME",
+                                            "minDateTime": "2022-09-17 11:37:09",
+                                            "maxDateTime": "2023-12-04 01:05:59"
+                                        },
+                                        {
+                                            "type": "STATUS",
+                                            "statusIn": [
+                                                "NO_CERTIFIED",
+                                                "PREPROCESSING",
+                                                "CERTIFIED"
+                                            ]
+                                        },
+                                        {
+                                            "type": "STATUS",
+                                            "statusIn": []
+                                        }
+                                    ],
+                                    "order": "HARD",
+                                    "pageToken": "NbVLWuyLVpF6zeu4fX-m7aO66lMeoim_01v9LdB"
+                                }"""));
+
+        performDefault.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articles").value(hasSize(2)))
+                .andExpect(jsonPath("$.articles[*].articleId").value(
+                        everyItem(is(appResponseItem.getId().orElseThrow().toString()))))
+                .andExpect(jsonPath("$.articles[*].username").value(
+                        everyItem(is(appResponseItem.getUsername()))))
+                .andExpect(jsonPath("$.articles[*].title").value(
+                        everyItem(is(appResponseItem.getTitle()))))
+                .andExpect(jsonPath("$.articles[*].description").value(
+                        everyItem(is(appResponseItem.getDescription()))))
+                .andExpect(jsonPath("$.articles[*].level").value(
+                        everyItem(is(appResponseItem.getLevel()))))
+                .andExpect(jsonPath("$.articles[*].angle").value(
+                        everyItem(is(appResponseItem.getAngle()))))
+                .andExpect(jsonPath("$.articles[*].viewCount").value(
+                        everyItem(is((int) appResponseItem.getViewCount()))))
+                .andExpect(jsonPath("$.articles[*].favoriteCount").value(
+                        everyItem(is((int) appResponseItem.getFavoriteCount()))))
+                .andExpect(jsonPath("$.articles[*].registerDateTime").value(
+                        everyItem(is(appResponseItem.getRegisterDateTime().orElseThrow()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))))))
+                .andExpect(jsonPath("$.articles[*].video.videoId").value(everyItem(is(videoAppResponse.getUuid()))))
+                .andExpect(jsonPath("$.articles[*].video.streamingUrl").value(
+                        everyItem(is(videoAppResponse.getStreamingUrl()))))
+                .andExpect(jsonPath("$.articles[*].video.streamingLength").value(
+                        everyItem(is(videoAppResponse.getStreamingLength()))))
+                .andExpect(jsonPath("$.articles[*].video.streamingAspectRatio").value(
+                        everyItem(is(videoAppResponse.getStreamingAspectRatio()))))
+                .andExpect(jsonPath("$.articles[*].video.thumbnailUrl").value(
+                        everyItem(is(videoAppResponse.getThumbnailUrl()))))
+                .andExpect(jsonPath("$.articles[*].video.status").value(
+                        everyItem(is(videoAppResponse.getStatus().toString()))))
+                .andExpect(jsonPath("$.nextPageToken").value(is(appResponse.getNextPageToken())));
+
+        performComplex.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().string(performDefault.andReturn().getResponse().getContentAsString()));
+    }
+
+    @WithMockUser
+    @Test
+    void searchArticlesEmpty() throws Exception {
+        SearchArticleAppResponse appResponseEmpty = new SearchArticleAppResponse();
+
+        given(this.articleApplication.search(any())).willReturn(appResponseEmpty);
+
+        ResultActions performDefault = this.mockMvc.perform(
+                post("/articles/search").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                }"""));
+
+        ResultActions performOrderByView = this.mockMvc.perform(
+                post("/articles/search").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "order": "VIEW"
+                                }"""));
+
+        ResultActions performWithPageToken = this.mockMvc.perform(
+                post("/articles/search").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "pageToken": "pp"
+                                }"""));
+
+        ResultActions performOrderByNewWithPageToken = this.mockMvc.perform(
+                post("/articles/search").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "order": "NEW",
+                                    "pageToken": "pp"
+                                }"""));
+
+        ResultActions performEmptyFiltersOrderByEasy = this.mockMvc.perform(
+                post("/articles/search").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "filters": [],
+                                    "order": "EASY"
+                                }"""));
+
+        ResultActions performEmptyFiltersOrderByOldWithPageToken = this.mockMvc.perform(
+                post("/articles/search").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "filters": [],
+                                    "order": "OLD",
+                                    "pageToken": "pp"
+                                }"""));
+
+        ResultActions performTitleFilterOrderByPopularWithPageToken = this.mockMvc.perform(
+                post("/articles/search").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "filters": [
+                                        {
+                                            "type": "TITLE",
+                                            "titleLike": "hello"
+                                        }
+                                    ],
+                                    "order": "POPULAR",
+                                    "pageToken": "pp"
+                                }"""));
+
+        ResultActions performComplex = this.mockMvc.perform(
+                post("/articles/search").with(csrf()).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "filters": [
+                                        {
+                                            "type": "TITLE",
+                                            "titleLike": "the wall"
+                                        },
+                                        {
+                                            "type": "USER",
+                                            "username": "njw1204"
+                                        },
+                                        {
+                                            "type": "LEVEL",
+                                            "minLevel": 1,
+                                            "maxLevel": 19
+                                        },
+                                        {
+                                            "type": "ANGLE",
+                                            "minAngle": 2,
+                                            "maxAngle": 70
+                                        },
+                                        {
+                                            "type": "DATETIME",
+                                            "minDateTime": "2022-09-17 11:37:09",
+                                            "maxDateTime": "2023-12-04 01:05:59"
+                                        },
+                                        {
+                                            "type": "STATUS",
+                                            "statusIn": [
+                                                "NO_CERTIFIED",
+                                                "PREPROCESSING",
+                                                "CERTIFIED"
+                                            ]
+                                        },
+                                        {
+                                            "type": "STATUS",
+                                            "statusIn": []
+                                        }
+                                    ],
+                                    "order": "HARD",
+                                    "pageToken": "NbVLWuyLVpF6zeu4fX-m7aO66lMeoim_01v9LdB"
+                                }"""));
+
+        then(this.articleApplication).should(times(8)).search(any());
+
+        then(this.articleApplication).should(times(6)).search(argThat(argument -> argument.getFilters().isEmpty()));
+        then(this.articleApplication).should(times(1))
+                .search(argThat(argument -> argument.getFilters().size() == 1 &&
+                        argument.getFilters().get(0).getTitleLike().equals("hello")));
+        then(this.articleApplication).should(times(1))
+                .search(argThat(argument -> argument.getFilters().size() == 7 &&
+                        argument.getFilters().get(0).getTitleLike().equals("the wall") &&
+                        argument.getFilters().get(1).getUsername().equals("njw1204") &&
+                        argument.getFilters().get(2).getMinLevel() == 1 &&
+                        argument.getFilters().get(2).getMaxLevel() == 19 &&
+                        argument.getFilters().get(3).getMinAngle() == 2 &&
+                        argument.getFilters().get(3).getMaxAngle() == 70 &&
+                        argument.getFilters()
+                                .get(4)
+                                .getMinDateTime()
+                                .equals(LocalDateTime.of(2022, 9, 17, 11, 37, 9)) &&
+                        argument.getFilters()
+                                .get(4)
+                                .getMaxDateTime()
+                                .equals(LocalDateTime.of(2023, 12, 4, 1, 5, 59)) &&
+                        argument.getFilters().get(5).getStatusIn().size() == 3 &&
+                        argument.getFilters().get(5).getStatusIn().get(0) == VideoStatus.NO_CERTIFIED &&
+                        argument.getFilters().get(5).getStatusIn().get(1) == VideoStatus.PREPROCESSING &&
+                        argument.getFilters().get(5).getStatusIn().get(2) == VideoStatus.CERTIFIED &&
+                        argument.getFilters().get(6).getStatusIn().size() == 0));
+
+        then(this.articleApplication).should(times(3))
+                .search(argThat(argument -> argument.getOrder() == SearchArticleAppRequestOrder.NEW));
+        then(this.articleApplication).should(times(1))
+                .search(argThat(argument -> argument.getOrder() == SearchArticleAppRequestOrder.OLD));
+        then(this.articleApplication).should(times(1))
+                .search(argThat(argument -> argument.getOrder() == SearchArticleAppRequestOrder.VIEW));
+        then(this.articleApplication).should(times(1))
+                .search(argThat(argument -> argument.getOrder() == SearchArticleAppRequestOrder.POPULAR));
+        then(this.articleApplication).should(times(1))
+                .search(argThat(argument -> argument.getOrder() == SearchArticleAppRequestOrder.HARD));
+        then(this.articleApplication).should(times(1))
+                .search(argThat(argument -> argument.getOrder() == SearchArticleAppRequestOrder.EASY));
+
+        then(this.articleApplication).should(times(3))
+                .search(argThat(argument -> argument.getPageToken().equals("")));
+        then(this.articleApplication).should(times(4))
+                .search(argThat(argument -> argument.getPageToken().equals("pp")));
+        then(this.articleApplication).should(times(1))
+                .search(argThat(argument -> argument.getPageToken().equals("NbVLWuyLVpF6zeu4fX-m7aO66lMeoim_01v9LdB")));
+
+        performDefault.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articles").value(hasSize(0)))
+                .andExpect(jsonPath("$.nextPageToken").value(is("")));
+
+        performOrderByView.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articles").value(hasSize(0)))
+                .andExpect(jsonPath("$.nextPageToken").value(is("")));
+
+        performWithPageToken.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articles").value(hasSize(0)))
+                .andExpect(jsonPath("$.nextPageToken").value(is("")));
+
+        performOrderByNewWithPageToken.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articles").value(hasSize(0)))
+                .andExpect(jsonPath("$.nextPageToken").value(is("")));
+
+        performEmptyFiltersOrderByEasy.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articles").value(hasSize(0)))
+                .andExpect(jsonPath("$.nextPageToken").value(is("")));
+
+        performEmptyFiltersOrderByOldWithPageToken.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articles").value(hasSize(0)))
+                .andExpect(jsonPath("$.nextPageToken").value(is("")));
+
+        performTitleFilterOrderByPopularWithPageToken.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articles").value(hasSize(0)))
+                .andExpect(jsonPath("$.nextPageToken").value(is("")));
+
+        performComplex.andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.articles").value(hasSize(0)))
+                .andExpect(jsonPath("$.nextPageToken").value(is("")));
     }
 }

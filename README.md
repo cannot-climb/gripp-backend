@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img height="150" src="docs/gripp-icon.png" alt="Logo">
+  <img height="150" src="gripp-icon.png" alt="Logo">
   <br>Gripp Backend
 </h1>
 

@@ -90,7 +90,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.REMOTE_SSH_KEY }}
           ARGS: -avz --delete
           TARGET: gripp-backend/
-          EXCLUDE: .config, .git, .github, .gitignore
+          EXCLUDE: .config, .git, .github
       - name: Build Docker
         uses: appleboy/ssh-action@master
         with:

@@ -83,7 +83,7 @@ public class UserController {
     @GetMapping("/{username}")
     public ResponseEntity<?> findUser(
             @Parameter(description = "유저 아이디", example = "njw1204") @PathVariable("username") String username) {
-        FindUserAppResponse appResponse = this.userApplication.findUser(username);
+        FindUserAppResponse appResponse = this.userApplication.findUser(username.replaceAll("\\W", ""));
 
         if (!appResponse.isSuccess()) {
             ErrorResponse errorResponse = new ErrorResponse();

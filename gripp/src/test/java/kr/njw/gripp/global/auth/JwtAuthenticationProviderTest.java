@@ -18,12 +18,13 @@ import static org.assertj.core.api.Assertions.within;
 class JwtAuthenticationProviderTest {
     private static final String SECRET = "secret";
     private static final String SECRET_BYTES = Base64.getEncoder().encodeToString(SECRET.getBytes());
+    private static final long DURATION_SECONDS = 60;
 
     private JwtAuthenticationProvider jwtAuthenticationProvider;
 
     @BeforeEach
     void setUp() {
-        this.jwtAuthenticationProvider = new JwtAuthenticationProvider(SECRET);
+        this.jwtAuthenticationProvider = new JwtAuthenticationProvider(SECRET, DURATION_SECONDS);
     }
 
     @AfterEach
@@ -36,8 +37,8 @@ class JwtAuthenticationProviderTest {
         Claims body = Jwts.parser().setSigningKey(SECRET_BYTES).parseClaimsJws(token).getBody();
 
         assertThat(body.getSubject()).isEqualTo("test");
-        assertThat(body.getExpiration().getTime() - body.getIssuedAt().getTime()).isEqualTo(1000L * 60 * 60 * 24 * 30);
-        assertThat(body.getExpiration().getTime() - new Date().getTime()).isCloseTo(1000L * 60 * 60 * 24 * 30,
+        assertThat(body.getExpiration().getTime() - body.getIssuedAt().getTime()).isEqualTo(DURATION_SECONDS * 1000);
+        assertThat(body.getExpiration().getTime() - new Date().getTime()).isCloseTo(DURATION_SECONDS * 1000,
                 within(5000L));
         assertThat(body.get("authorities")).isInstanceOf(List.class);
         assertThat(((List<?>) body.get("authorities")).stream().map(Object::toString).toList()).contains(

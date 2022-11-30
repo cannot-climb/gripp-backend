@@ -18,14 +18,15 @@ import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationProvider {
-    // TODO: 유효시간 60분으로 변경
-    public static final long TOKEN_VALID_TIME_MS = 1000L * 60 * 60 * 24 * 30;
     private static final String AUTHORITIES_KEY = "authorities";
 
     private final String secret;
+    private final long duration;
 
-    public JwtAuthenticationProvider(@Value("${gripp.jwt.secret}") String secret) {
+    public JwtAuthenticationProvider(@Value("${gripp.jwt.secret}") String secret,
+                                     @Value("${gripp.jwt.duration-seconds}") long durationSeconds) {
         this.secret = Base64.getEncoder().encodeToString(secret.getBytes());
+        this.duration = durationSeconds * 1000;
     }
 
     public String createToken(String username, List<Role> roles) {
@@ -37,7 +38,7 @@ public class JwtAuthenticationProvider {
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + TOKEN_VALID_TIME_MS))
+                .setExpiration(new Date(now.getTime() + this.duration))
                 .signWith(SignatureAlgorithm.HS256, this.secret)
                 .compact();
     }

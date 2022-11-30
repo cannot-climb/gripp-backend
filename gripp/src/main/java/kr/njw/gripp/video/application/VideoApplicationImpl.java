@@ -49,7 +49,7 @@ import java.util.UUID;
 public class VideoApplicationImpl implements VideoApplication {
     private static final String EXTENSION_PATTERN = "mp4|mov";
     private static final String MIME_TYPE_PATTERN = "video/mp4|video/quicktime";
-    private static final long MIN_DURATION_IN_SECONDS = 5;
+    private static final long MIN_DURATION_IN_SECONDS = 1;
 
     private final UserService userService;
     private final ArticleRepository articleRepository;

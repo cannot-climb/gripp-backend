@@ -135,7 +135,7 @@ class VideoApplicationImplTest {
         given(this.tika.detect(any(InputStream.class))).willReturn("video/mp4");
         willAnswer(invocation -> {
             Metadata metadata = invocation.getArgument(2);
-            metadata.set(XMPDM.DURATION, "4.9");
+            metadata.set(XMPDM.DURATION, "0.9");
             return null;
         }).given(this.mp4Parser).parse(any(), any(), any(), any());
 

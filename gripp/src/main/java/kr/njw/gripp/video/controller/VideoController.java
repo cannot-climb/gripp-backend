@@ -67,7 +67,7 @@ public class VideoController {
     })
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadVideo(
-            @Parameter(description = "영상 파일 (mp4, mov만 허용. 영상 최소 길이 5초. 파일 최대 크기 1GB)", required = true)
+            @Parameter(description = "영상 파일 (mp4, mov만 허용. 영상 최소 길이 1초. 파일 최대 크기 1GB)", required = true)
             @RequestPart("file")
             MultipartFile file)
             throws IOException {

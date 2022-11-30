@@ -22,6 +22,7 @@ export class VideoService {
     String(process.env.GRIPP_DEEP_API_ENDPOINT),
     'kilterboard/upload',
   );
+  private readonly GRIPP_PREDICT_TIMEOUT_MS = 1800000;
   private readonly s3 = new AWS.S3({
     credentials: {
       accessKeyId: `${process.env.GRIPP_AWS_ACCESS_KEY}`,
@@ -64,7 +65,7 @@ export class VideoService {
           headers: {
             Authorization: `Bearer ${process.env.GRIPP_DEEP_TOKEN}`,
           },
-          timeout: 300000,
+          timeout: this.GRIPP_PREDICT_TIMEOUT_MS,
         },
       );
 

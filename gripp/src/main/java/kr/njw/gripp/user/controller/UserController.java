@@ -15,6 +15,7 @@ import kr.njw.gripp.user.application.dto.FindUserAppResponse;
 import kr.njw.gripp.user.controller.dto.FindLeaderBoardResponse;
 import kr.njw.gripp.user.controller.dto.FindUserResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Tag(name = "User")
@@ -31,6 +34,23 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private final static String[] EMOJIS = StringUtils.split("""
+            😀 😃 😄 😁 😆\s
+            😅 😂 🤣 😊 😇 🙂 🙃\s
+            😉 😌 😍 🥰 😘 😗 😙 😚\s
+            😋 😛 😝 😜 🤪 🤨 🧐 🤓\s
+            😎 🤩 🥳 😏 😒 😞 😔 😟\s
+            😕 🙁 😣 😖 😫 😩 🥺\s
+            😢 😭 😤 😠 😡 🤬 🤯 😳\s
+            🥵 🥶 😱 😨 😰 😥 😓 🤗\s
+            🤔 🤭 🤫 🤥 😶 😐 😑 😬\s
+            🙄 😯 😦 😧 😮 😲 🥱 😴\s
+            🤤 😪 😵 🤐 🥴 🤢 🤮 🤧\s
+            😷 🤒 🤕 🤑 🤠 😈 👿 👹\s
+            👺 🤡 👻 💀 👽 👾\s
+            🤖 🎃 😺 😸 😹 😻 😼 😽\s
+            🙀 😿 😾""");
+
     private final UserApplication userApplication;
 
     public static FindUserResponse createFindUserResponse(FindUserAppResponse appResponse) {
@@ -98,6 +118,13 @@ public class UserController {
             errorResponse.setErrors(List.of("fail to find leaderboard"));
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
+
+        appResponse.getDefaultBoard().forEach(defaultBoardItem -> {
+            long seed = UUID.nameUUIDFromBytes(defaultBoardItem.getUsername().orElseThrow().getBytes())
+                    .getMostSignificantBits();
+            defaultBoardItem.setUsername(EMOJIS[(new Random(seed)).nextInt(EMOJIS.length)] + " " +
+                    defaultBoardItem.getUsername().orElseThrow());
+        });
 
         FindLeaderBoardResponse response = new FindLeaderBoardResponse();
         response.setTopBoard(appResponse.getTopBoard().stream()

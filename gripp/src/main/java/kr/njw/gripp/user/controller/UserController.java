@@ -126,13 +126,6 @@ public class UserController {
                     topBoardItem.getUsername().orElseThrow());
         });
 
-        appResponse.getDefaultBoard().forEach(defaultBoardItem -> {
-            long seed = UUID.nameUUIDFromBytes(defaultBoardItem.getUsername().orElseThrow().getBytes())
-                    .getMostSignificantBits();
-            defaultBoardItem.setUsername(EMOJIS[(new Random(seed)).nextInt(EMOJIS.length)] + " " +
-                    defaultBoardItem.getUsername().orElseThrow());
-        });
-
         FindLeaderBoardResponse response = new FindLeaderBoardResponse();
         response.setTopBoard(appResponse.getTopBoard().stream()
                 .map(UserController::createFindUserResponse).collect(Collectors.toList()));

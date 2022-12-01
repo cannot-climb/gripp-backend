@@ -26,6 +26,7 @@ import { VideoService } from './service/video.service';
           type: 'direct',
         },
       ],
+      prefetchCount: 1,
       connectionInitOptions: { wait: false },
       defaultSubscribeErrorBehavior: MessageHandlerErrorBehavior.NACK,
     }),

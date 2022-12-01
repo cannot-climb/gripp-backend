@@ -13,7 +13,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     long countByScoreGreaterThan(int score);
 
-    Stream<User> findByOrderByScoreDesc();
+    Stream<User> findByOrderByScoreDescIdAsc();
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<User> findForUpdateById(Long id);

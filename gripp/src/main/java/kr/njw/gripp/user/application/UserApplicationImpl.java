@@ -57,7 +57,7 @@ public class UserApplicationImpl implements UserApplication {
         FindLeaderBoardAppResponse response = new FindLeaderBoardAppResponse();
         response.setSuccess(true);
 
-        try (Stream<User> users = this.userRepository.findByOrderByScoreDesc()) {
+        try (Stream<User> users = this.userRepository.findByOrderByScoreDescIdAsc()) {
             long rankEnd = this.getRankEnd();
             AtomicLong fetchedUserCount = new AtomicLong(0);
             AtomicLong lastRank = new AtomicLong(0);

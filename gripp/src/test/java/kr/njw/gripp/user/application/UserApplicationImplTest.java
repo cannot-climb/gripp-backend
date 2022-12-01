@@ -116,7 +116,7 @@ class UserApplicationImplTest {
         given(this.userRepository.findByUsername(anyString())).willAnswer(invocation -> users.stream()
                 .filter(user -> user.getUsername().equals(invocation.getArgument(0)))
                 .findFirst());
-        given(this.userRepository.findByOrderByScoreDesc()).willAnswer(invocation -> users.stream());
+        given(this.userRepository.findByOrderByScoreDescIdAsc()).willAnswer(invocation -> users.stream());
 
         FindLeaderBoardAppResponse test = this.userApplicationImpl.findLeaderBoard("test0");
         FindLeaderBoardAppResponse test2 = this.userApplicationImpl.findLeaderBoard("test10");

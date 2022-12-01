@@ -317,7 +317,7 @@ public class ArticleController {
                             case TITLE -> SearchArticleAppRequestFilter.builder()
                                     .titleLike(filter.getTitleLike()).build();
                             case USER -> SearchArticleAppRequestFilter.builder()
-                                    .username(filter.getUsername()).build();
+                                    .username(filter.getUsername().replaceAll("\\W", "")).build();
                             case LEVEL -> SearchArticleAppRequestFilter.builder()
                                     .minLevel(filter.getMinLevel()).maxLevel(filter.getMaxLevel()).build();
                             case ANGLE -> SearchArticleAppRequestFilter.builder()

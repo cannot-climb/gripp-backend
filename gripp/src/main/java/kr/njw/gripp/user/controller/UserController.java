@@ -35,20 +35,20 @@ import java.util.stream.Collectors;
 @RequestMapping("/users")
 public class UserController {
     private final static String[] EMOJIS = StringUtils.split("""
-            😀 😃 😄 😁 😆\s
-            😅 😂 🤣 😊 😇 🙂 🙃\s
-            😉 😌 😍 🥰 😘 😗 😙 😚\s
-            😋 😛 😝 😜 🤪 🤨 🧐 🤓\s
-            😎 🤩 🥳 😏 😒 😞 😔 😟\s
-            😕 🙁 😣 😖 😫 😩 🥺\s
-            😢 😭 😤 😠 😡 🤬 🤯 😳\s
-            🥵 🥶 😱 😨 😰 😥 😓 🤗\s
-            🤔 🤭 🤫 🤥 😶 😐 😑 😬\s
-            🙄 😯 😦 😧 😮 😲 🥱 😴\s
-            🤤 😪 😵 🤐 🥴 🤢 🤮 🤧\s
-            😷 🤒 🤕 🤑 🤠 😈 👿 👹\s
-            👺 🤡 👻 💀 👽 👾\s
-            🤖 🎃 😺 😸 😹 😻 😼 😽\s
+            😀 😃 😄 😁 😆
+            😅 😂 🤣 😊 😇 🙂 🙃
+            😉 😌 😍 🥰 😘 😗 😙 😚
+            😋 😛 😝 😜 🤪 🤨 🧐 🤓
+            😎 🤩 🥳 😏 😒 😞 😔 😟
+            😕 🙁 😣 😖 😫 😩 🥺
+            😢 😭 😤 😠 🤯 😳
+            😱 😨 😰 😥 😓 🤗
+            🤔 🤭 🤫 🤥 😶 😐 😑 😬
+            🙄 😯 😦 😧 😮 😲 🥱 😴
+            🤤 😪 😵 🤐 🥴
+            😷 🤒 🤕 🤑 🤠
+            🤡 👻 💀 👽 👾
+            🤖 🎃 😺 😸 😹 😻 😼 😽
             🙀 😿 😾""");
 
     private final UserApplication userApplication;
@@ -118,6 +118,13 @@ public class UserController {
             errorResponse.setErrors(List.of("fail to find leaderboard"));
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
+
+        appResponse.getTopBoard().forEach(topBoardItem -> {
+            long seed = UUID.nameUUIDFromBytes(topBoardItem.getUsername().orElseThrow().getBytes())
+                    .getMostSignificantBits();
+            topBoardItem.setUsername(EMOJIS[(new Random(seed)).nextInt(EMOJIS.length)] + " " +
+                    topBoardItem.getUsername().orElseThrow());
+        });
 
         appResponse.getDefaultBoard().forEach(defaultBoardItem -> {
             long seed = UUID.nameUUIDFromBytes(defaultBoardItem.getUsername().orElseThrow().getBytes())

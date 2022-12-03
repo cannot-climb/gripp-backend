@@ -77,4 +77,4 @@ decorator:
 gripp:
   jwt:
     secret: ${env.GRIPP_JWT_SECRET}
-    duration-seconds: 2592000 # TODO: 유효시간 60분으로 변경
+    duration-seconds: 3600

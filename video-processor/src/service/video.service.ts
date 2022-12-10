@@ -186,7 +186,7 @@ export class VideoService {
     });
 
     let startTime = String(deepNetworkResponse.data?.startTime || '00:00:00');
-    let endTime = String(deepNetworkResponse.data?.endTime || '00:60:00');
+    let endTime = String(deepNetworkResponse.data?.endTime || '00:59:59');
 
     if (startTime > endTime) {
       [startTime, endTime] = [endTime, startTime];
@@ -217,7 +217,7 @@ export class VideoService {
         duration >= this.GRIPP_PREDICT_FALLBACK_REASONABLE_DURATION_MIN &&
         duration <= this.GRIPP_PREDICT_FALLBACK_REASONABLE_DURATION_MAX,
       startTime: '00:00:00',
-      endTime: '00:60:00',
+      endTime: '00:59:59',
     };
   }
 

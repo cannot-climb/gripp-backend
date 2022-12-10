@@ -22,7 +22,10 @@ export class VideoService {
     String(process.env.GRIPP_DEEP_API_ENDPOINT),
     'kilterboard/upload',
   );
-  private readonly GRIPP_PREDICT_TIMEOUT_MS = 1800000;
+  private readonly GRIPP_PREDICT_PING_TIMEOUT_MS = 5000;
+  private readonly GRIPP_PREDICT_PROCESS_TIMEOUT_MS = 1800000;
+  private readonly GRIPP_PREDICT_FALLBACK_REASONABLE_DURATION_MIN = 30;
+  private readonly GRIPP_PREDICT_FALLBACK_REASONABLE_DURATION_MAX = 90;
   private readonly s3 = new AWS.S3({
     credentials: {
       accessKeyId: `${process.env.GRIPP_AWS_ACCESS_KEY}`,
@@ -37,6 +40,7 @@ export class VideoService {
   public async makeStream(
     uuid: string,
     fileName: string,
+    useFallback: boolean,
   ): Promise<MakeStreamResponse> {
     try {
       const opt = { shell: 'bash' };
@@ -56,36 +60,10 @@ export class VideoService {
       wget.stderr?.pipe(process.stderr);
       await wget;
 
-      const deepNetworkResponse = await axios.post(
-        this.GRIPP_PREDICT_API,
-        {
-          videoUrl: `${this.GRIPP_DOWNLOAD_API}/${fileName}`,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.GRIPP_DEEP_TOKEN}`,
-          },
-          timeout: this.GRIPP_PREDICT_TIMEOUT_MS,
-        },
-      );
-
-      console.log({
-        status: deepNetworkResponse.status,
-        statusText: deepNetworkResponse.statusText,
-        headers: deepNetworkResponse.headers,
-        config: deepNetworkResponse.config,
-        data: deepNetworkResponse.data,
-      });
-
-      let startTime = deepNetworkResponse.data?.startTime || '00:00:00';
-      let endTime = deepNetworkResponse.data?.endTime || '00:60:00';
-
-      if (startTime > endTime) {
-        [startTime, endTime] = [endTime, startTime];
-      }
+      const prediction = await this.predictVideo(fileName, useFallback);
 
       const hlsCommand = `ffmpeg -hide_banner -nostdin -y \\
-      -ss ${startTime} -to ${endTime} \\
+      -ss ${prediction.startTime} -to ${prediction.endTime} \\
       -i videos/${fileName} \\
       -filter_complex "[v]split=2[vt1][vt2];[vt1]scale=${this.HIGH_RES}:-2,format=yuv420p[vo1];[vt2]scale=${this.MEDIUM_RES}:-2,format=yuv420p[vo2]" \\
       -preset veryfast -crf 20 -sc_threshold 0 \\
@@ -144,7 +122,7 @@ export class VideoService {
           uploadedUrls.find((url) =>
             url.endsWith(this.HLS_THUMBNAIL_FILE_NAME),
           ) || '',
-        certified: Boolean(deepNetworkResponse.data?.success),
+        certified: prediction.success,
       };
     } catch (e) {
       throw e;
@@ -169,6 +147,78 @@ export class VideoService {
         },
       );
     }
+  }
+
+  private async predictVideo(fileName: string, predictFallback: boolean) {
+    if (predictFallback) {
+      return this.predictVideoFallback(fileName);
+    }
+
+    try {
+      await axios.options(this.GRIPP_PREDICT_API, {
+        validateStatus: null,
+        timeout: this.GRIPP_PREDICT_PING_TIMEOUT_MS,
+      });
+    } catch (e) {
+      console.log(e);
+      return this.predictVideoFallback(fileName);
+    }
+
+    const deepNetworkResponse = await axios.post(
+      this.GRIPP_PREDICT_API,
+      {
+        videoUrl: `${this.GRIPP_DOWNLOAD_API}/${fileName}`,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GRIPP_DEEP_TOKEN}`,
+        },
+        timeout: this.GRIPP_PREDICT_PROCESS_TIMEOUT_MS,
+      },
+    );
+
+    console.log({
+      status: deepNetworkResponse.status,
+      statusText: deepNetworkResponse.statusText,
+      headers: deepNetworkResponse.headers,
+      config: deepNetworkResponse.config,
+      data: deepNetworkResponse.data,
+    });
+
+    let startTime = String(deepNetworkResponse.data?.startTime || '00:00:00');
+    let endTime = String(deepNetworkResponse.data?.endTime || '00:60:00');
+
+    if (startTime > endTime) {
+      [startTime, endTime] = [endTime, startTime];
+    }
+
+    return {
+      success: Boolean(deepNetworkResponse.data?.success),
+      startTime,
+      endTime,
+    };
+  }
+
+  private async predictVideoFallback(fileName: string) {
+    const opt = { shell: 'bash' };
+    const ffprobeCommand = `ffprobe -v quiet -of json \\
+    -select_streams v \\
+    -show_format -show_streams \\
+    videos/${fileName}`;
+
+    const ffprobe = execa.command(ffprobeCommand, opt);
+    ffprobe.stdout?.pipe(process.stdout);
+    ffprobe.stderr?.pipe(process.stderr);
+    const ffprobeResult = JSON.parse((await ffprobe).stdout || '{}');
+    const duration = Number(ffprobeResult?.format?.duration || 0);
+
+    return {
+      success:
+        duration >= this.GRIPP_PREDICT_FALLBACK_REASONABLE_DURATION_MIN &&
+        duration <= this.GRIPP_PREDICT_FALLBACK_REASONABLE_DURATION_MAX,
+      startTime: '00:00:00',
+      endTime: '00:60:00',
+    };
   }
 
   private async uploadFolder(folder: string) {

@@ -11,7 +11,7 @@
 [![Deploy](https://github.com/cannot-climb/gripp-backend/actions/workflows/deploy.yml/badge.svg)](https://github.com/cannot-climb/gripp-backend/actions/workflows/deploy.yml)
 [![Codecov](https://codecov.io/gh/cannot-climb/gripp-backend/branch/master/graph/badge.svg?token=SCV0N8EJZB)](https://codecov.io/gh/cannot-climb/gripp-backend)
 
-Application Server of Gripp ━ the sport climbing video community app powered by AI
+Application Server of Gripp ━ the sport climbing video competition app powered by AI
 
 </div>
 

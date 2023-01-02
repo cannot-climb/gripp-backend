@@ -6,7 +6,9 @@ require_once ROOT_DIR . '/vendor/dotenv/Processor/BooleanProcessor.php';
 require_once ROOT_DIR . '/vendor/dotenv/Processor/QuotedProcessor.php';
 require_once ROOT_DIR . '/vendor/dotenv/DotEnv.php';
 
-(new DevCoder\DotEnv(ROOT_DIR . '/.env'))->load();
+try {
+  (new DevCoder\DotEnv(ROOT_DIR . '/.env'))->load();
+} catch (InvalidArgumentException $e) {}
 
 function adminer_object() {
   class AdminerSoftware extends Adminer {

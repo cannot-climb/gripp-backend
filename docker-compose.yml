@@ -7,6 +7,8 @@ services:
       - "127.0.0.1:8080:8080"
     volumes:
       - gripp-upload:/gripp/upload
+    env_file:
+      - .env
     environment:
       TZ: "Asia/Seoul"
     logging:
@@ -17,6 +19,8 @@ services:
     restart: "unless-stopped"
   video-processor:
     build: "video-processor"
+    env_file:
+      - .env
     environment:
       TZ: "Asia/Seoul"
     logging:
@@ -29,6 +33,8 @@ services:
     build: "admin"
     ports:
       - "127.0.0.1:8081:80"
+    env_file:
+      - .env
     environment:
       TZ: "Asia/Seoul"
     logging:
@@ -42,7 +48,9 @@ services:
     ports:
       - "127.0.0.1:8082:9090"
     volumes:
-      - gripp-prometheus:/prometheus
+      - gripp-prometheus:/opt/bitnami/prometheus/data
+    env_file:
+      - .env
     logging:
       driver: "json-file"
       options:

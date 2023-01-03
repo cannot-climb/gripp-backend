@@ -21,29 +21,29 @@ jobs:
       - name: Make envfile
         uses: SpicyPizza/create-envfile@v1.3
         with:
-          envkey_GRIPP_ADMIN_NAME: ${{ secrets.GRIPP_ADMIN_NAME }}
-          envkey_GRIPP_ADMIN_PASSWORD: ${{ secrets.GRIPP_ADMIN_PASSWORD }}
-          envkey_GRIPP_ADMIN_PASSWORD_RAW: ${{ secrets.GRIPP_ADMIN_PASSWORD_RAW }}
-          envkey_GRIPP_AWS_ACCESS_KEY: ${{ secrets.GRIPP_AWS_ACCESS_KEY }}
-          envkey_GRIPP_AWS_SECRET_KEY: ${{ secrets.GRIPP_AWS_SECRET_KEY }}
-          envkey_GRIPP_AWS_REGION: ${{ secrets.GRIPP_AWS_REGION }}
-          envkey_GRIPP_AWS_S3_ENDPOINT: ${{ secrets.GRIPP_AWS_S3_ENDPOINT }}
-          envkey_GRIPP_AWS_S3_BUCKET: ${{ secrets.GRIPP_AWS_S3_BUCKET }}
-          envkey_GRIPP_DB_HOSTNAME: ${{ secrets.GRIPP_DB_HOSTNAME }}
-          envkey_GRIPP_DB_PORT: ${{ secrets.GRIPP_DB_PORT }}
-          envkey_GRIPP_DB_SCHEMA: ${{ secrets.GRIPP_DB_SCHEMA }}
-          envkey_GRIPP_DB_USERNAME: ${{ secrets.GRIPP_DB_USERNAME }}
-          envkey_GRIPP_DB_PASSWORD: ${{ secrets.GRIPP_DB_PASSWORD }}
-          envkey_GRIPP_RABBITMQ_ADDRESS: ${{ secrets.GRIPP_RABBITMQ_ADDRESS }}
-          envkey_GRIPP_JWT_SECRET: ${{ secrets.GRIPP_JWT_SECRET }}
-          envkey_GRIPP_MAIN_API_ENDPOINT: ${{ secrets.GRIPP_MAIN_API_ENDPOINT }}
-          envkey_GRIPP_DEEP_API_ENDPOINT: ${{ secrets.GRIPP_DEEP_API_ENDPOINT }}
-          envkey_GRIPP_DEEP_TOKEN: ${{ secrets.GRIPP_DEEP_TOKEN }}
-          envkey_GRIPP_PROMETHEUS_TARGET: ${{ secrets.GRIPP_PROMETHEUS_TARGET }}
-          envkey_GRIPP_GRAFANA_DOMAIN: ${{ secrets.GRIPP_GRAFANA_DOMAIN }}
-          envkey_GRIPP_GRAFANA_ROOT_URL: ${{ secrets.GRIPP_GRAFANA_ROOT_URL }}
-          envkey_GRIPP_GRAFANA_DEFAULT_USER: ${{ secrets.GRIPP_GRAFANA_DEFAULT_USER }}
-          envkey_GRIPP_GRAFANA_DEFAULT_PASSWORD: ${{ secrets.GRIPP_GRAFANA_DEFAULT_PASSWORD }}
+          envkey_GRIPP_ADMIN_NAME: ${{ format('''{0}''', secrets.GRIPP_ADMIN_NAME) }}
+          envkey_GRIPP_ADMIN_PASSWORD: ${{ format('''{0}''', secrets.GRIPP_ADMIN_PASSWORD) }}
+          envkey_GRIPP_ADMIN_PASSWORD_RAW: ${{ format('''{0}''', secrets.GRIPP_ADMIN_PASSWORD_RAW) }}
+          envkey_GRIPP_AWS_ACCESS_KEY: ${{ format('''{0}''', secrets.GRIPP_AWS_ACCESS_KEY) }}
+          envkey_GRIPP_AWS_SECRET_KEY: ${{ format('''{0}''', secrets.GRIPP_AWS_SECRET_KEY) }}
+          envkey_GRIPP_AWS_REGION: ${{ format('''{0}''', secrets.GRIPP_AWS_REGION) }}
+          envkey_GRIPP_AWS_S3_ENDPOINT: ${{ format('''{0}''', secrets.GRIPP_AWS_S3_ENDPOINT) }}
+          envkey_GRIPP_AWS_S3_BUCKET: ${{ format('''{0}''', secrets.GRIPP_AWS_S3_BUCKET) }}
+          envkey_GRIPP_DB_HOSTNAME: ${{ format('''{0}''', secrets.GRIPP_DB_HOSTNAME) }}
+          envkey_GRIPP_DB_PORT: ${{ format('''{0}''', secrets.GRIPP_DB_PORT) }}
+          envkey_GRIPP_DB_SCHEMA: ${{ format('''{0}''', secrets.GRIPP_DB_SCHEMA) }}
+          envkey_GRIPP_DB_USERNAME: ${{ format('''{0}''', secrets.GRIPP_DB_USERNAME) }}
+          envkey_GRIPP_DB_PASSWORD: ${{ format('''{0}''', secrets.GRIPP_DB_PASSWORD) }}
+          envkey_GRIPP_RABBITMQ_ADDRESS: ${{ format('''{0}''', secrets.GRIPP_RABBITMQ_ADDRESS) }}
+          envkey_GRIPP_JWT_SECRET: ${{ format('''{0}''', secrets.GRIPP_JWT_SECRET) }}
+          envkey_GRIPP_MAIN_API_ENDPOINT: ${{ format('''{0}''', secrets.GRIPP_MAIN_API_ENDPOINT) }}
+          envkey_GRIPP_DEEP_API_ENDPOINT: ${{ format('''{0}''', secrets.GRIPP_DEEP_API_ENDPOINT) }}
+          envkey_GRIPP_DEEP_TOKEN: ${{ format('''{0}''', secrets.GRIPP_DEEP_TOKEN) }}
+          envkey_GRIPP_PROMETHEUS_TARGET: ${{ format('''{0}''', secrets.GRIPP_PROMETHEUS_TARGET) }}
+          envkey_GRIPP_GRAFANA_DOMAIN: ${{ format('''{0}''', secrets.GRIPP_GRAFANA_DOMAIN) }}
+          envkey_GRIPP_GRAFANA_ROOT_URL: ${{ format('''{0}''', secrets.GRIPP_GRAFANA_ROOT_URL) }}
+          envkey_GRIPP_GRAFANA_DEFAULT_USER: ${{ format('''{0}''', secrets.GRIPP_GRAFANA_DEFAULT_USER) }}
+          envkey_GRIPP_GRAFANA_DEFAULT_PASSWORD: ${{ format('''{0}''', secrets.GRIPP_GRAFANA_DEFAULT_PASSWORD) }}
           file_name: .env
           fail_on_empty: true
       - name: Deploy
@@ -63,6 +63,7 @@ jobs:
           port: ${{ secrets.REMOTE_SSH_PORT }}
           username: ${{ secrets.REMOTE_SSH_USERNAME }}
           key: ${{ secrets.REMOTE_SSH_KEY }}
+          script_stop: true
           script: |
             cd ~/gripp-backend
             docker compose up -d --build

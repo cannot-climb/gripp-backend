@@ -18,63 +18,28 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: gradle/wrapper-validation-action@v1
-      - name: Make gripp envfile
+      - name: Make envfile
         uses: SpicyPizza/create-envfile@v1.3
         with:
-          envkey_GRIPP_DB_HOSTNAME: ${{ secrets.GRIPP_DB_HOSTNAME }}
-          envkey_GRIPP_DB_PORT: ${{ secrets.GRIPP_DB_PORT }}
-          envkey_GRIPP_DB_SCHEMA: ${{ secrets.GRIPP_DB_SCHEMA }}
-          envkey_GRIPP_DB_USERNAME: ${{ secrets.GRIPP_DB_USERNAME }}
-          envkey_GRIPP_DB_PASSWORD: ${{ secrets.GRIPP_DB_PASSWORD }}
-          envkey_GRIPP_RABBITMQ_ADDRESS: ${{ secrets.GRIPP_RABBITMQ_ADDRESS }}
           envkey_GRIPP_ADMIN_NAME: ${{ secrets.GRIPP_ADMIN_NAME }}
           envkey_GRIPP_ADMIN_PASSWORD: ${{ secrets.GRIPP_ADMIN_PASSWORD }}
-          envkey_GRIPP_JWT_SECRET: ${{ secrets.GRIPP_JWT_SECRET }}
-          directory: gripp/src/main/resources
-          file_name: .env
-          fail_on_empty: true
-      - name: Make video-processor envfile
-        uses: SpicyPizza/create-envfile@v1.3
-        with:
-          envkey_GRIPP_MAIN_API_ENDPOINT: ${{ secrets.GRIPP_MAIN_API_ENDPOINT }}
-          envkey_GRIPP_DEEP_API_ENDPOINT: ${{ secrets.GRIPP_DEEP_API_ENDPOINT }}
-          envkey_GRIPP_RABBITMQ_ADDRESS: ${{ secrets.GRIPP_RABBITMQ_ADDRESS }}
-          envkey_GRIPP_ADMIN_NAME: ${{ secrets.GRIPP_ADMIN_NAME }}
           envkey_GRIPP_ADMIN_PASSWORD_RAW: ${{ secrets.GRIPP_ADMIN_PASSWORD_RAW }}
-          envkey_GRIPP_DEEP_TOKEN: ${{ secrets.GRIPP_DEEP_TOKEN }}
           envkey_GRIPP_AWS_ACCESS_KEY: ${{ secrets.GRIPP_AWS_ACCESS_KEY }}
           envkey_GRIPP_AWS_SECRET_KEY: ${{ secrets.GRIPP_AWS_SECRET_KEY }}
           envkey_GRIPP_AWS_REGION: ${{ secrets.GRIPP_AWS_REGION }}
           envkey_GRIPP_AWS_S3_ENDPOINT: ${{ secrets.GRIPP_AWS_S3_ENDPOINT }}
           envkey_GRIPP_AWS_S3_BUCKET: ${{ secrets.GRIPP_AWS_S3_BUCKET }}
-          directory: video-processor
-          file_name: .env
-          fail_on_empty: true
-      - name: Make admin envfile
-        uses: SpicyPizza/create-envfile@v1.3
-        with:
           envkey_GRIPP_DB_HOSTNAME: ${{ secrets.GRIPP_DB_HOSTNAME }}
           envkey_GRIPP_DB_PORT: ${{ secrets.GRIPP_DB_PORT }}
           envkey_GRIPP_DB_SCHEMA: ${{ secrets.GRIPP_DB_SCHEMA }}
           envkey_GRIPP_DB_USERNAME: ${{ secrets.GRIPP_DB_USERNAME }}
           envkey_GRIPP_DB_PASSWORD: ${{ secrets.GRIPP_DB_PASSWORD }}
-          envkey_GRIPP_ADMIN_NAME: ${{ secrets.GRIPP_ADMIN_NAME }}
-          envkey_GRIPP_ADMIN_PASSWORD_RAW: ${{ secrets.GRIPP_ADMIN_PASSWORD_RAW }}
-          directory: admin
-          file_name: .env
-          fail_on_empty: true
-      - name: Make prometheus envfile
-        uses: SpicyPizza/create-envfile@v1.3
-        with:
+          envkey_GRIPP_RABBITMQ_ADDRESS: ${{ secrets.GRIPP_RABBITMQ_ADDRESS }}
+          envkey_GRIPP_JWT_SECRET: ${{ secrets.GRIPP_JWT_SECRET }}
+          envkey_GRIPP_MAIN_API_ENDPOINT: ${{ secrets.GRIPP_MAIN_API_ENDPOINT }}
+          envkey_GRIPP_DEEP_API_ENDPOINT: ${{ secrets.GRIPP_DEEP_API_ENDPOINT }}
+          envkey_GRIPP_DEEP_TOKEN: ${{ secrets.GRIPP_DEEP_TOKEN }}
           envkey_GRIPP_PROMETHEUS_TARGET: ${{ secrets.GRIPP_PROMETHEUS_TARGET }}
-          envkey_GRIPP_ADMIN_NAME: ${{ secrets.GRIPP_ADMIN_NAME }}
-          envkey_GRIPP_ADMIN_PASSWORD_RAW: ${{ secrets.GRIPP_ADMIN_PASSWORD_RAW }}
-          directory: prometheus
-          file_name: .env
-          fail_on_empty: true
-      - name: Make docker-compose envfile
-        uses: SpicyPizza/create-envfile@v1.3
-        with:
           envkey_GRIPP_GRAFANA_DOMAIN: ${{ secrets.GRIPP_GRAFANA_DOMAIN }}
           envkey_GRIPP_GRAFANA_ROOT_URL: ${{ secrets.GRIPP_GRAFANA_ROOT_URL }}
           envkey_GRIPP_GRAFANA_DEFAULT_USER: ${{ secrets.GRIPP_GRAFANA_DEFAULT_USER }}

@@ -48,7 +48,7 @@ services:
     ports:
       - "127.0.0.1:8082:9090"
     volumes:
-      - gripp-prometheus:/opt/bitnami/prometheus/data
+      - gripp-prometheus:/prometheus
     env_file:
       - .env
     logging:

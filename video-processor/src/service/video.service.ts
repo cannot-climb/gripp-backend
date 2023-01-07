@@ -154,15 +154,10 @@ export class VideoService {
       return this.predictVideoFallback(fileName);
     }
 
-    try {
-      await axios.options(this.GRIPP_PREDICT_API, {
-        validateStatus: null,
-        timeout: this.GRIPP_PREDICT_PING_TIMEOUT_MS,
-      });
-    } catch (e) {
-      console.log(e);
-      return this.predictVideoFallback(fileName);
-    }
+    await axios.options(this.GRIPP_PREDICT_API, {
+      validateStatus: null,
+      timeout: this.GRIPP_PREDICT_PING_TIMEOUT_MS,
+    });
 
     const deepNetworkResponse = await axios.post(
       this.GRIPP_PREDICT_API,

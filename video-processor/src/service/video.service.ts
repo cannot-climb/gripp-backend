@@ -24,8 +24,8 @@ export class VideoService {
   );
   private readonly GRIPP_PREDICT_PING_TIMEOUT_MS = 5000;
   private readonly GRIPP_PREDICT_PROCESS_TIMEOUT_MS = 1800000;
-  private readonly GRIPP_PREDICT_FALLBACK_REASONABLE_DURATION_MIN = 30;
-  private readonly GRIPP_PREDICT_FALLBACK_REASONABLE_DURATION_MAX = 90;
+  private readonly GRIPP_PREDICT_FALLBACK_REASONABLE_DURATION_MIN = 15;
+  private readonly GRIPP_PREDICT_FALLBACK_REASONABLE_DURATION_MAX = 120;
   private readonly s3 = new AWS.S3({
     credentials: {
       accessKeyId: `${process.env.GRIPP_AWS_ACCESS_KEY}`,

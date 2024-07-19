@@ -19,16 +19,10 @@ Application Server of Gripp ━ the sport climbing video competition app powered
 
 **https://gripp.dev.njw.kr/swagger-ui**
 
-- require an admin account
-
 ## ⚙️ Admin Tool
 
 **https://gripp.dev.njw.kr/admin**
 
-- require an admin account
-
 ## 📊 Grafana
 
 **https://gripp.dev.njw.kr/grafana**
-
-- require an admin account
